@@ -72,14 +72,20 @@ ALTER TABLE posts DISABLE ROW LEVEL SECURITY;
 
 
 -- 1. Cho phép mọi người xem ảnh (SELECT)
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'blog-images');
 
 -- 2. Cho phép mọi người tải ảnh lên (INSERT)
+DROP POLICY IF EXISTS "Public Upload" ON storage.objects;
 CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'blog-images');
 
 -- 3. Cho phép cập nhật và xóa (Nếu cần)
+DROP POLICY IF EXISTS "Public Update" ON storage.objects;
 CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (bucket_id = 'blog-images');
+
+DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
 CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (bucket_id = 'blog-images');
+
 
 -- Tắt hoàn toàn RLS cho bảng comments (giống như trong file setup của mình)
 ALTER TABLE comments DISABLE ROW LEVEL SECURITY;
@@ -87,16 +93,36 @@ ALTER TABLE comments DISABLE ROW LEVEL SECURITY;
 -- Tắt RLS cho bảng nội dung tĩnh
 ALTER TABLE site_content DISABLE ROW LEVEL SECURITY;
 
-ALTER TABLE posts ADD COLUMN tags TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS tags TEXT;
 
 
 -- 1. Kích hoạt Realtime cho bảng tin nhắn
 ALTER TABLE contact_messages REPLICA IDENTITY FULL;
-ALTER publication supabase_realtime ADD TABLE contact_messages;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_rel pr 
+    JOIN pg_publication p ON p.oid = pr.prpubid 
+    JOIN pg_class c ON c.oid = pr.prrelid 
+    WHERE p.pubname = 'supabase_realtime' AND c.relname = 'contact_messages'
+  ) THEN
+    ALTER publication supabase_realtime ADD TABLE contact_messages;
+  END IF;
+END $$;
 
 -- 2. Kích hoạt Realtime cho bảng bình luận
 ALTER TABLE comments REPLICA IDENTITY FULL;
-ALTER publication supabase_realtime ADD TABLE comments;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_rel pr 
+    JOIN pg_publication p ON p.oid = pr.prpubid 
+    JOIN pg_class c ON c.oid = pr.prrelid 
+    WHERE p.pubname = 'supabase_realtime' AND c.relname = 'comments'
+  ) THEN
+    ALTER publication supabase_realtime ADD TABLE comments;
+  END IF;
+END $$;
 
 -- 3. (Quan trọng) Cho phép anonymous (khách) có thể lắng nghe Realtime
 -- Lưu ý: Nếu lệnh này báo lỗi thì có nghĩa là bảng của bạn đã được cấu hình đúng rồi
