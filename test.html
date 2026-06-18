@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="padding: 50px; font-family: sans-serif;">
+    <h1>Supabase Connection Test (Debug Mode)</h1>
+    
+    <button id="test-btn" style="padding: 15px 30px; font-size: 18px; cursor: pointer; background: #3ecf8e; color: white; border: none; border-radius: 5px;">
+        KIỂM TRA NGAY
+    </button>
+
+    <div id="result" style="margin-top: 30px; padding: 20px; border: 1px solid #ccc; background: #f9f9f9; min-height: 100px; white-space: pre-wrap;">
+        Kết quả sẽ hiện ở đây...
+    </div>
+
+    <script>
+        // Đổi tên biến để tránh trùng lặp hệ thống
+        const MY_URL = "https://csjwyvngqynqjbuwtsdv.supabase.co".trim();
+        const MY_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzand5dm5ncXlucWpidXd0c2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NTEzMjQsImV4cCI6MjA5NDEyNzMyNH0.21KDagCTN31_ytNhhqSQZ0_mvXzu7QbIEFYgzpgrZDY".trim();
+
+        document.getElementById('test-btn').onclick = async () => {
+            const resDiv = document.getElementById('result');
+            
+            // Hiện thông báo để kiểm tra giá trị thực tế
+            alert("Đang thử kết nối tới: " + MY_URL);
+            
+            resDiv.innerHTML = "Đang kiểm tra kết nối với URL: " + MY_URL;
+            
+            try {
+                // Khởi tạo client
+                const supabaseClient = window.supabase.createClient(MY_URL, MY_KEY);
+                
+                // Thử lấy dữ liệu
+                const { data, error } = await supabaseClient.from('posts').select('id').limit(1);
+                
+                if (error) {
+                    resDiv.innerHTML = "❌ LỖI TỪ SUPABASE: " + error.message;
+                    resDiv.style.color = "red";
+                } else {
+                    resDiv.innerHTML = "✅ KẾT NỐI THÀNH CÔNG!";
+                    resDiv.style.color = "green";
+                }
+            } catch (err) {
+                resDiv.innerHTML = "❌ LỖI HỆ THỐNG: " + err.message + "\n\n(Giá trị URL: " + MY_URL + ")";
+                resDiv.style.color = "red";
+            }
+        };
+    </script>
+</body>
+</html>

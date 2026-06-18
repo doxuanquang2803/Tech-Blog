@@ -1,0 +1,3477 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechWorld Admin CMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/notifications.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --green: #10b981;
+            --red: #ef4444;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --sidebar: 240px;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+            color: white;
+        }
+
+        .sidebar-brand span {
+            color: var(--primary);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .nav-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 32px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-footer a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            height: 64px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        #topbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 101;
+        }
+
+        .content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        /* Tabs */
+        .tab {
+            display: none;
+        }
+
+        .tab.active {
+            display: block;
+        }
+
+        /* Dashboard Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            opacity: 0.8;
+        }
+
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        /* Table */
+        .table-wrap {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 10001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Loading */
+        .loading-box {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(99, 102, 241, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .fa-spin-fast {
+            animation: fa-spin 0.4s infinite linear;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Form */
+        .form-box {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 32px;
+            max-width: 900px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .hours-ui {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: 0.3s;
+        }
+        .hours-status-select {
+            width: 130px !important;
+            padding: 8px !important;
+        }
+        .hours-time-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        .hours-time-wrap input[type="time"] {
+            flex: 1;
+            padding: 8px !important;
+            min-width: 100px;
+        }
+        .hours-ui.is-closed .hours-time-wrap {
+            opacity: 0.2;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .ql-container {
+            min-height: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 8px 8px;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .ql-toolbar {
+            background: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* Preview */
+        #img-preview {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 12px;
+            display: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 14px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .badge-live { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+        .badge-draft { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
+        .badge-info { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .badge-primary { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
+
+        .text-center { text-align: center !important; }
+        .text-right { text-align: right !important; }
+
+        .reset-btn {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .reset-btn i {
+            font-size: 0.85rem;
+            transition: transform 0.4s ease;
+        }
+
+        .reset-btn:hover {
+            background: var(--red);
+            color: white;
+            border-color: var(--red);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .reset-btn:hover i {
+            transform: rotate(-180deg);
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .field-header label {
+            margin-bottom: 0;
+        }
+
+        /* Confirm Modal */
+        .confirm-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.show .confirm-modal {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 24px;
+        }
+        .modal-icon.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .modal-icon.warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+        .modal-icon.info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+        .modal-icon.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .modal-text {
+            color: var(--muted);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-btn-confirm {
+            background: var(--red);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .modal-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Comment Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 11000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            z-index: 10;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .comment-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-meta {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Style inline figure captions inside Quill editor */
+        #editor-container .ql-editor figure.post-inline-figure {
+            border: 1px dashed rgba(212, 160, 23, 0.4);
+            padding: 12px;
+            background: rgba(212, 160, 23, 0.03);
+            border-radius: 8px;
+            margin: 25px auto;
+            text-align: center;
+            display: block;
+            width: 100%;
+        }
+        #editor-container .ql-editor figure.post-inline-figure img {
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        #editor-container .ql-editor figure.post-inline-figure figcaption {
+            font-size: 13px !important;
+            color: #718096 !important;
+            font-style: italic !important;
+            text-align: center !important;
+            margin-top: 8px !important;
+            display: block !important;
+            font-family: 'DM Sans', sans-serif !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading-overlay" class="modal-overlay">
+        <div class="loading-box">
+            <div class="loader"></div>
+            <div id="loading-text" style="margin-top:20px; font-weight:600;">Đang xử lý...</div>
+        </div>
+    </div>
+
+    <!-- Live Preview Modal -->
+    <div id="preview-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.95); z-index:99999; overflow-y:auto; padding:40px 20px;">
+        <div style="max-width:1200px; margin:0 auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 30px 60px rgba(0,0,0,0.4); display:flex; flex-direction:column;">
+            <div style="background:#0d1b2a; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1);">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="width:12px; height:12px; border-radius:50%; background:#ff5f56; display:inline-block;"></span>
+                    <span style="width:12px; height:12px; border-radius:50%; background:#ffbd2e; display:inline-block;"></span>
+                    <span style="width:12px; height:12px; border-radius:50%; background:#27c93f; display:inline-block;"></span>
+                    <span style="color:#fff; font-size:14px; font-weight:600; margin-left:15px; font-family:'DM Sans',sans-serif;"><i class="fa fa-eye"></i> Live Editorial Article Preview</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="closePreviewModal()" style="background:rgba(255,255,255,0.1); border:none; color:#fff; padding:6px 15px; border-radius:6px; cursor:pointer;"><i class="fa fa-times"></i> Đóng Xem trước</button>
+            </div>
+            
+            <div id="preview-modal-body" style="padding:0; background:#f4f6f8; max-height:80vh; overflow-y:auto;">
+                <!-- Content will be injected here, simulating single-post.html -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Beautiful Custom Caption Modal -->
+    <div id="caption-modal" class="modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.85); z-index:100000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:16px; padding:30px; width:100%; max-width:440px; box-shadow:0 25px 50px rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); font-family:'DM Sans',sans-serif; transform:scale(0.9); transition:transform 0.3s ease; position:relative;">
+            <!-- Close Button (X) at Top Right -->
+            <button type="button" onclick="closeCaptionModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:#a0aec0; font-size:18px; cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='#4a5568'" onmouseout="this.style.color='#a0aec0'">
+                <i class="fa fa-times"></i>
+            </button>
+
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:25px;">
+                <div style="width:40px; height:40px; border-radius:50%; background:rgba(212,160,23,0.1); display:flex; align-items:center; justify-content:center; color:#d4a017; font-size:18px;">
+                    <i class="fa fa-closed-captioning"></i>
+                </div>
+                <div>
+                    <h4 style="margin:0; font-size:18px; font-weight:800; color:#0d1b2a;">Chú thích hình ảnh</h4>
+                    <p style="margin:0; font-size:12px; color:#718096;">Nhập thông tin mô tả và nguồn ảnh</p>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="font-weight:700; font-size:13px; color:#4a5568; display:block; margin-bottom:6px;">Chú thích chính (Caption)</label>
+                <input type="text" id="caption-input" placeholder="Ví dụ: Cận cảnh vi xử lý AI Tensor G5 thế hệ mới..." style="width:100%; padding:10px 14px; border:1px solid #cbd5e0; border-radius:8px; font-size:14px; outline:none; transition:border 0.2s; background:#fff; color:#0d1b2a;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom:20px;">
+                <label style="font-weight:700; font-size:13px; color:#4a5568; display:block; margin-bottom:6px;">Nguồn/Tác giả (Credit) - Không bắt buộc</label>
+                <input type="text" id="credit-input" placeholder="Ví dụ: Ảnh bởi TechCrunch / Google" style="width:100%; padding:10px 14px; border:1px solid #cbd5e0; border-radius:8px; font-size:14px; outline:none; transition:border 0.2s; background:#fff; color:#0d1b2a;">
+            </div>
+            
+            <div style="margin-top:25px;">
+                <button type="button" class="btn btn-primary" onclick="submitCaptionModal()" style="width:100%; padding:12px; font-size:14px; border-radius:8px; background:#d4a017; border:none; color:#0d1b2a; font-weight:800; cursor:pointer; transition:all 0.2s ease; box-shadow:0 4px 15px rgba(212, 160, 23, 0.3);">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="comment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="comment-modal-title">Bình luận bài viết</h4>
+                <button class="btn btn-secondary btn-sm" onclick="closeCommentModal()"><i
+                        class="fa fa-times"></i></button>
+            </div>
+            <div id="comment-modal-body" class="modal-body">
+                <!-- Comments will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Vault<span>Edge</span> CMS</div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" onclick="showTab('dashboard', this)"><i class="fa fa-home"></i>
+                    Dashboard</button>
+                <button class="nav-btn" onclick="showTab('site-content', this)"><i class="fa fa-desktop"></i> Trang
+                    chủ</button>
+                <button class="nav-btn" onclick="showTab('posts', this)"><i class="fa fa-file-lines"></i> Bài
+                    viết</button>
+
+                <div
+                    style="padding: 10px 32px; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 1px;">
+                    Chuyên mục</div>
+                <button class="nav-btn" onclick="showCategoryTab('AI', this)"><i class="fa fa-robot"></i> AI</button>
+                <button class="nav-btn" onclick="showCategoryTab('Programming', this)"><i class="fa fa-code"></i>
+                    Programming</button>
+                <button class="nav-btn" onclick="showCategoryTab('Cybersecurity', this)"><i
+                        class="fa fa-shield-halved"></i> Cybersecurity</button>
+                <button class="nav-btn" onclick="showCategoryTab('Tech Reviews', this)"><i
+                        class="fa fa-mobile-screen"></i> Tech Reviews</button>
+
+                <div
+                    style="padding: 10px 32px; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 1px;">
+                    Nội dung trang</div>
+                <button class="nav-btn" onclick="showTab('site-about', this)"><i class="fa fa-info-circle"></i> Trang
+                    About</button>
+                <button class="nav-btn" onclick="showTab('site-services', this)"><i class="fa fa-briefcase"></i> Trang
+                    Services</button>
+                <button class="nav-btn" onclick="showTab('site-insights', this)"><i class="fa fa-newspaper"></i> Trang
+                    Insights</button>
+                <button class="nav-btn" onclick="showTab('site-contact', this)"><i class="fa fa-envelope"></i> Trang
+                    Contact</button>
+
+                <div
+                    style="padding: 10px 32px; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 1px;">
+                    Hệ thống</div>
+                <button class="nav-btn" onclick="showTab('inbox', this)"><i class="fa fa-inbox"></i> Hộp thư <span
+                        class="badge badge-danger" id="unread-count"
+                        style="display:none; margin-left:auto;">0</span></button>
+                <button class="nav-btn" onclick="showTab('comments', this)"><i class="fa fa-comments"></i> Bình
+                    luận</button>
+            </nav>
+            <div class="sidebar-footer"><a href="index.html"><i class="fa fa-arrow-left"></i> Về trang chủ</a></div>
+        </aside>
+
+        <div id="confirm-modal-overlay" class="modal-overlay">
+            <div class="confirm-modal">
+                <div id="modal-icon" class="modal-icon"><i class="fa fa-exclamation-triangle"></i></div>
+                <div class="modal-title" id="confirm-title">Xác nhận</div>
+                <div class="modal-text" id="confirm-text">Bạn có chắc chắn muốn thực hiện hành động này không?</div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-cancel" id="confirm-cancel-btn">Hủy</button>
+                    <button class="modal-btn modal-btn-confirm" id="confirm-ok-btn">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+
+        <main class="main">
+            <div class="topbar">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <button id="btn-back" class="btn btn-secondary btn-sm" style="display:none;" onclick="goBack()"><i
+                            class="fa fa-arrow-left"></i> Quay lại</button>
+                    <h2 id="tab-title">Dashboard</h2>
+                </div>
+                <div id="topbar-actions">
+                    <button class="btn btn-primary" onclick="openNewPost()"><i class="fa fa-plus"></i> Viết bài
+                        mới</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Dashboard -->
+                <div id="tab-dashboard" class="tab active">
+                    <div class="stats">
+                        <div class="stat-card" onclick="showTab('posts')" style="cursor:pointer;">
+                            <i class="fa fa-file-lines stat-icon"></i>
+                            <div>
+                                <div class="stat-num" id="stat-total">0</div>
+                                <p>Tổng bài viết</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" onclick="showTab('posts')" style="cursor:pointer;">
+                            <i class="fa fa-check-circle stat-icon" style="color:var(--green)"></i>
+                            <div>
+                                <div class="stat-num" id="stat-published">0</div>
+                                <p>Đã xuất bản</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" onclick="showTab('comments')" style="cursor:pointer;">
+                            <i class="fa fa-comments stat-icon" style="color:#f59e0b"></i>
+                            <div>
+                                <div class="stat-num" id="stat-comments">0</div>
+                                <p>Bình luận</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" onclick="showTab('site-content')" style="cursor:pointer;">
+                            <i class="fa fa-cog stat-icon" style="color:#8b5cf6"></i>
+                            <div>
+                                <div class="stat-num" id="stat-site-content">0</div>
+                                <p>Nội dung tĩnh</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:16px;">
+                        <button class="btn btn-secondary" onclick="checkConn()"><i class="fa fa-plug"></i> Test
+                            Connection</button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Category Tab -->
+                <div id="tab-category" class="tab">
+                    <!-- Category Page Settings (Hidden by default) -->
+                    <div id="cat-settings-box" class="form-box"
+                        style="display:none; margin-bottom:32px; border-color:var(--primary);">
+                        <h4 style="margin-bottom:16px;">Cấu hình giao diện trang <span id="cat-setting-name"></span>
+                        </h4>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề trang (Page Hero Title)</label>
+                                <button class="reset-btn" id="btn-reset-cat-title"><i class="fa fa-rotate-left"></i>
+                                    Khôi phục</button>
+                            </div>
+                            <input type="text" id="sc-cat_title" placeholder="Ví dụ: AI Technology & Innovation">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Ảnh bìa trang (Page Hero Banner)</label>
+                                <button class="reset-btn" id="btn-reset-cat-banner"><i class="fa fa-rotate-left"></i>
+                                    Khôi phục</button>
+                            </div>
+                            <input type="file" id="sc-f-cat_banner" accept="image/*"
+                                onchange="previewSCImg('cat_banner', this)">
+                            <img id="sc-preview-cat_banner"
+                                style="width:100%; height:120px; object-fit:cover; margin-top:10px; border-radius:4px; display:none; border: 1px solid var(--border);">
+                            <input type="hidden" id="sc-cat_banner">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveCategorySettings()"><i class="fa fa-save"></i> Lưu
+                            cấu hình trang</button>
+                    </div>
+
+                    <!-- Post List for Category -->
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề bài viết</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th class="text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cat-posts-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Global Posts List (Hidden from sidebar but kept for logic) -->
+                <div id="tab-posts" class="tab">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề</th>
+                                    <th class="text-center">Chuyên mục</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th class="text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posts-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Editor -->
+                <div id="tab-editor" class="tab">
+                    <div class="form-box">
+                        <input type="hidden" id="f-id">
+                        <div class="form-group"><label>Tiêu đề bài viết</label><input type="text" id="f-title"
+                                placeholder="Ví dụ: AI trong năm 2025..."></div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Chuyên mục</label>
+                                <select id="f-cat">
+                                    <option value="AI">AI</option>
+                                    <option value="Programming">Programming</option>
+                                    <option value="Cybersecurity">Cybersecurity</option>
+                                    <option value="Tech Reviews">Tech Reviews</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ảnh đại diện</label>
+                                <input type="file" id="f-img" accept="image/*" onchange="previewImg(this)">
+                                <img id="img-preview">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group"><label>Slug (tùy chọn)</label><input type="text" id="f-slug"
+                                    placeholder="vd: ai-2025"></div>
+                            <div class="form-group"><label>Mô tả ngắn</label><input type="text" id="f-excerpt"
+                                    placeholder="Tóm tắt nội dung bài viết..."></div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tác giả (Để trống sẽ hiện mặc định)</label>
+                                <input type="text" id="f-author" placeholder="Ví dụ: TechWorld Admin, Nguyễn Văn A...">
+                            </div>
+                            <div class="form-group">
+                                <label>Tags (Cách nhau bằng dấu phẩy)</label>
+                                <input type="text" id="f-tags" placeholder="AI, JavaScript, Cloud, Security...">
+                                <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-size: 0.75rem; color: var(--muted); align-self: center;">Gợi ý:</span>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('AI')">AI</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('Programming')">Programming</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('Cybersecurity')">Security</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('JavaScript')">JS</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('Python')">Python</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('Hardware')">Hardware</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="addTag('Cloud')">Cloud</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group"><label>Nội dung chi tiết</label>
+                            <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa fa-info-circle" style="color:var(--ve-gold)"></i> Mẹo chuyên nghiệp: Bạn có thể <strong>kéo thả ảnh trực tiếp</strong> hoặc bấm nút <strong>ảnh trên thanh công cụ</strong> để tải lên Supabase và chèn hình ảnh kèm chú thích (caption) chuyên nghiệp!
+                            </div>
+                            <div id="editor-container"></div>
+                        </div>
+
+                        <div class="form-group"><label style="display:flex; align-items:center; gap:10px;"><input
+                                    type="checkbox" id="f-pub" style="width:auto;"> Xuất bản (Public)</label></div>
+
+                        <div style="display:flex; gap:12px; margin-top:32px;">
+                            <button class="btn btn-primary" onclick="handleSave()"><i class="fa fa-save"></i> Lưu bài viết</button>
+                            <button class="btn btn-success" onclick="openLivePreview()" style="background:#28a745; border-color:#28a745; color:#fff;"><i class="fa fa-eye"></i> Xem trước</button>
+                            <button class="btn btn-secondary" onclick="showTab('posts')">Hủy bỏ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments -->
+                <div id="tab-comments" class="tab">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Bài viết</th>
+                                    <th>Chuyên mục</th>
+                                    <th>Người bình luận</th>
+                                    <th>Nội dung</th>
+                                    <th>Ngày</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comments-list"></tbody>
+                        </table>
+                    </div>
+                    <p id="no-comments-msg"
+                        style="color:var(--muted); text-align:center; padding:40px 0; display:none;">Chưa có bình luận
+                        nào.</p>
+                </div>
+
+                <!-- Site Content -->
+                <div id="tab-site-content" class="tab">
+                    <div class="form-box">
+                        <p style="color:var(--muted); margin-bottom:24px;">Chỉnh sửa các banner, tiêu đề và hình ảnh
+                            hiển thị trên trang chủ.</p>
+
+                        <!-- SECTION: HERO -->
+                        <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-star"></i> PHẦN ĐẦU TRANG
+                            (HERO SECTION)</h4>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Nhãn nhỏ (Hero Badge)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('hero_badge')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục mặc định</button>
+                            </div>
+                            <input type="text" id="sc-hero_badge" placeholder="Mặc định: FINANCIAL INSIGHTS">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề chính (Hero Title)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('hero_title')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục mặc định</button>
+                            </div>
+                            <input type="text" id="sc-hero_title"
+                                placeholder="Mặc định: Smart Investing <span>Starts Here.</span>">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Mô tả ngắn (Hero Description)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('hero_desc')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục mặc định</button>
+                            </div>
+                            <textarea id="sc-hero_desc" rows="3"
+                                placeholder="Mặc định: Discover high-performance investment strategies..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh chính bên phải (Hero Main Image)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('hero_img_main')"><i
+                                            class="fa fa-rotate-left"></i> Khôi phục</button>
+                                </div>
+                                <input type="file" id="sc-f-hero_img_main" accept="image/*"
+                                    onchange="previewSCImg('hero_img_main', this)">
+                                <img id="sc-preview-hero_img_main"
+                                    style="width:100%; height:100px; object-fit:cover; margin-top:10px; border-radius:4px; display:none; border: 1px solid var(--border);">
+                                <input type="hidden" id="sc-hero_img_main">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh nhỏ đè lên (Hero Accent Image)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('hero_img_accent')"><i
+                                            class="fa fa-rotate-left"></i> Khôi phục</button>
+                                </div>
+                                <input type="file" id="sc-f-hero_img_accent" accept="image/*"
+                                    onchange="previewSCImg('hero_img_accent', this)">
+                                <img id="sc-preview-hero_img_accent"
+                                    style="width:100%; height:100px; object-fit:cover; margin-top:10px; border-radius:4px; display:none; border: 1px solid var(--border);">
+                                <input type="hidden" id="sc-hero_img_accent">
+                            </div>
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <!-- SECTION: WHY TECHWORLD -->
+                        <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-question-circle"></i> PHẦN
+                            GIỚI THIỆU (WHY TECHWORLD)</h4>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Hình ảnh phần Why TechWorld (Why TechWorld Image)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('whyus_img_main')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục</button>
+                            </div>
+                            <input type="file" id="sc-f-whyus_img_main" accept="image/*"
+                                onchange="previewSCImg('whyus_img_main', this)">
+                            <img id="sc-preview-whyus_img_main"
+                                style="width:100%; height:150px; object-fit:cover; margin-top:10px; border-radius:4px; display:none; border: 1px solid var(--border);">
+                            <input type="hidden" id="sc-whyus_img_main">
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <!-- SECTION: CTA -->
+                        <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-bullhorn"></i> BANNER KÊU
+                            GỌI (CTA SECTION)</h4>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Ảnh nền Banner CTA (CTA Background Image)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('cta_banner_img')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục</button>
+                            </div>
+                            <input type="file" id="sc-f-cta_banner_img" accept="image/*"
+                                onchange="previewSCImg('cta_banner_img', this)">
+                            <img id="sc-preview-cta_banner_img"
+                                style="width:100%; height:120px; object-fit:cover; margin-top:10px; border-radius:4px; display:none; border: 1px solid var(--border);">
+                            <input type="hidden" id="sc-cta_banner_img">
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <!-- SECTION: TESTIMONIALS -->
+                        <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-users"></i> PHẦN Ý KIẾN
+                            KHÁCH HÀNG (TESTIMONIALS)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh đại diện 1</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('testi_avatar_1')"><i
+                                            class="fa fa-rotate-left"></i> Xóa</button>
+                                </div>
+                                <input type="file" id="sc-f-testi_avatar_1" accept="image/*"
+                                    onchange="previewSCImg('testi_avatar_1', this)">
+                                <img id="sc-preview-testi_avatar_1"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none; border: 1px solid var(--border);">
+                                <input type="hidden" id="sc-testi_avatar_1">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh đại diện 2</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('testi_avatar_2')"><i
+                                            class="fa fa-rotate-left"></i> Xóa</button>
+                                </div>
+                                <input type="file" id="sc-f-testi_avatar_2" accept="image/*"
+                                    onchange="previewSCImg('testi_avatar_2', this)">
+                                <img id="sc-preview-testi_avatar_2"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none; border: 1px solid var(--border);">
+                                <input type="hidden" id="sc-testi_avatar_2">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh đại diện 3</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('testi_avatar_3')"><i
+                                            class="fa fa-rotate-left"></i> Xóa</button>
+                                </div>
+                                <input type="file" id="sc-f-testi_avatar_3" accept="image/*"
+                                    onchange="previewSCImg('testi_avatar_3', this)">
+                                <img id="sc-preview-testi_avatar_3"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none; border: 1px solid var(--border);">
+                                <input type="hidden" id="sc-testi_avatar_3">
+                            </div>
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <!-- SECTION: CONTACT -->
+                        <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-address-book"></i> THÔNG
+                            TIN LIÊN HỆ (FOOTER)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Số điện thoại</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('contact_phone')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-contact_phone" placeholder="+1 800 555 0199">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Email</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('contact_email')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="email" id="sc-contact_email" placeholder="hello@TechWorld.com">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Địa chỉ</label>
+                                <button class="reset-btn" onclick="resetSiteContent('contact_address')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-contact_address" placeholder="42 Harbor View, San Francisco, CA">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Page Settings -->
+                <div id="tab-site-about" class="tab">
+                    <div class="form-box">
+                        <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-image"></i> BANNER & TIÊU
+                            ĐỀ CHÍNH</h4>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Ảnh bìa chính (About Hero Banner)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('about_hero_banner')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục</button>
+                            </div>
+                            <input type="file" id="sc-f-about_hero_banner" accept="image/*"
+                                onchange="previewSCImg('about_hero_banner', this)">
+                            <img id="sc-preview-about_hero_banner"
+                                style="width:100%; height:120px; object-fit:cover; margin-top:10px; border-radius:4px; display:none;">
+                            <input type="hidden" id="sc-about_hero_banner">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề chính (About Hero Title)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('about_hero_title')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục</button>
+                            </div>
+                            <input type="text" id="sc-about_hero_title" placeholder="Mặc định: Innovating Technology">
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-star"></i> GIỚI THIỆU CHI
+                            TIẾT</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh giới thiệu 1</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('about_img_1')"><i
+                                            class="fa fa-rotate-left"></i> Khôi phục</button>
+                                </div>
+                                <input type="file" id="sc-f-about_img_1" accept="image/*"
+                                    onchange="previewSCImg('about_img_1', this)">
+                                <img id="sc-preview-about_img_1"
+                                    style="width:100%; height:100px; object-fit:cover; margin-top:10px; border-radius:4px; display:none;">
+                                <input type="hidden" id="sc-about_img_1">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Ảnh giới thiệu 2</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('about_img_2')"><i
+                                            class="fa fa-rotate-left"></i> Khôi phục</button>
+                                </div>
+                                <input type="file" id="sc-f-about_img_2" accept="image/*"
+                                    onchange="previewSCImg('about_img_2', this)">
+                                <img id="sc-preview-about_img_2"
+                                    style="width:100%; height:100px; object-fit:cover; margin-top:10px; border-radius:4px; display:none;">
+                                <input type="hidden" id="sc-about_img_2">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Số năm kinh nghiệm (12+)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('about_ribbon_val')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-about_ribbon_val" placeholder="Mặc định: 12+">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Văn bản ribbon (Years of Trust)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('about_ribbon_txt')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-about_ribbon_txt" placeholder="Mặc định: Years of Trust">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề giới thiệu</label>
+                                <button class="reset-btn" onclick="resetSiteContent('about_title')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-about_title"
+                                placeholder="Mặc định: A Platform Built for <span>Developers</span>">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Đoạn dẫn đầu (Lead paragraph)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('about_lead')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <textarea id="sc-about_lead" rows="3"
+                                placeholder="Mặc định: We are a team of developers..."></textarea>
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-users"></i> ĐỘI NGŨ LÃNH
+                            ĐẠO</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Thành viên 1 (Ảnh/Tên/Vai trò)</label>
+                                    <button class="reset-btn" onclick="resetTeamMember(1)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="file" id="sc-f-team_img_1" accept="image/*"
+                                    onchange="previewSCImg('team_img_1', this)" style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_name_1" placeholder="Alex Nguyen"
+                                    style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_role_1" placeholder="Full Stack Developer">
+                                <img id="sc-preview-team_img_1"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none;">
+                                <input type="hidden" id="sc-team_img_1">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Thành viên 2 (Ảnh/Tên/Vai trò)</label>
+                                    <button class="reset-btn" onclick="resetTeamMember(2)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="file" id="sc-f-team_img_2" accept="image/*"
+                                    onchange="previewSCImg('team_img_2', this)" style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_name_2" placeholder="David Tran"
+                                    style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_role_2" placeholder="AI Engineer">
+                                <img id="sc-preview-team_img_2"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none;">
+                                <input type="hidden" id="sc-team_img_2">
+                            </div>
+                        </div>
+                        <div class="form-row" style="margin-top:20px;">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Thành viên 3 (Ảnh/Tên/Vai trò)</label>
+                                    <button class="reset-btn" onclick="resetTeamMember(3)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="file" id="sc-f-team_img_3" accept="image/*"
+                                    onchange="previewSCImg('team_img_3', this)" style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_name_3" placeholder="Linh Pham"
+                                    style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_role_3" placeholder="Cybersecurity Specialist">
+                                <img id="sc-preview-team_img_3"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none;">
+                                <input type="hidden" id="sc-team_img_3">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Thành viên 4 (Ảnh/Tên/Vai trò)</label>
+                                    <button class="reset-btn" onclick="resetTeamMember(4)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="file" id="sc-f-team_img_4" accept="image/*"
+                                    onchange="previewSCImg('team_img_4', this)" style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_name_4" placeholder="Casey Rivera"
+                                    style="margin-bottom:8px;">
+                                <input type="text" id="sc-team_role_4" placeholder="DevOps Engineer">
+                                <img id="sc-preview-team_img_4"
+                                    style="width:60px; height:60px; object-fit:cover; margin-top:10px; border-radius:50%; display:none;">
+                                <input type="hidden" id="sc-team_img_4">
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- END About -->
+
+                <!-- Services Page Settings -->
+                <div id="tab-site-services" class="tab">
+                    <div class="form-box">
+                        <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-image"></i> BANNER & TIÊU
+                            ĐỀ CHÍNH</h4>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Ảnh bìa chính (Services Hero Banner)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('services_hero_banner')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục</button>
+                            </div>
+                            <input type="file" id="sc-f-services_hero_banner" accept="image/*"
+                                onchange="previewSCImg('services_hero_banner', this)">
+                            <img id="sc-preview-services_hero_banner"
+                                style="width:100%; height:120px; object-fit:cover; margin-top:10px; border-radius:4px; display:none;">
+                            <input type="hidden" id="sc-services_hero_banner">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề chính (Services Hero Title)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('services_hero_title')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục</button>
+                            </div>
+                            <input type="text" id="sc-services_hero_title"
+                                placeholder="Mặc định: Technology <span>Knowledge Hub</span>">
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-star"></i> TIÊU ĐỀ GIỚI
+                            THIỆU</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Thẻ tiêu đề (Our Expertise)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('services_tag')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-services_tag" placeholder="Mặc định: Our Expertise">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Tiêu đề chính (Services Heading)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('services_title')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-services_title"
+                                    placeholder="Mặc định: Technology Resources for <span>Developers</span>">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Mô tả ngắn</label>
+                                <button class="reset-btn" onclick="resetSiteContent('services_desc')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <textarea id="sc-services_desc" rows="2"
+                                placeholder="Mặc định: Explore tutorials, guides and insights..."></textarea>
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-th-large"></i> CÁC DỊCH VỤ
+                            / LĨNH VỰC (6 MỤC)</h4>
+                        <div class="form-row">
+                            <div class="form-group"
+                                style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                                <div class="field-header">
+                                    <label>Mục 1 (Tên & Mô tả)</label>
+                                    <button class="reset-btn" onclick="resetServiceCard(1)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-service_name_1" placeholder="Investment Planning"
+                                    style="margin-bottom:8px;">
+                                <textarea id="sc-service_desc_1" rows="2" placeholder="Mô tả mục 1..."></textarea>
+                            </div>
+                            <div class="form-group"
+                                style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                                <div class="field-header">
+                                    <label>Mục 2 (Tên & Mô tả)</label>
+                                    <button class="reset-btn" onclick="resetServiceCard(2)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-service_name_2" placeholder="Wealth Management"
+                                    style="margin-bottom:8px;">
+                                <textarea id="sc-service_desc_2" rows="2" placeholder="Mô tả mục 2..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row" style="margin-top:20px;">
+                            <div class="form-group"
+                                style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                                <div class="field-header">
+                                    <label>Mục 3 (Tên & Mô tả)</label>
+                                    <button class="reset-btn" onclick="resetServiceCard(3)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-service_name_3" placeholder="Retirement Planning"
+                                    style="margin-bottom:8px;">
+                                <textarea id="sc-service_desc_3" rows="2" placeholder="Mô tả mục 3..."></textarea>
+                            </div>
+                            <div class="form-group"
+                                style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                                <div class="field-header">
+                                    <label>Mục 4 (Tên & Mô tả)</label>
+                                    <button class="reset-btn" onclick="resetServiceCard(4)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-service_name_4" placeholder="Tax Advisory"
+                                    style="margin-bottom:8px;">
+                                <textarea id="sc-service_desc_4" rows="2" placeholder="Mô tả mục 4..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row" style="margin-top:20px;">
+                            <div class="form-group"
+                                style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                                <div class="field-header">
+                                    <label>Mục 5 (Tên & Mô tả)</label>
+                                    <button class="reset-btn" onclick="resetServiceCard(5)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-service_name_5" placeholder="Risk Management"
+                                    style="margin-bottom:8px;">
+                                <textarea id="sc-service_desc_5" rows="2" placeholder="Mô tả mục 5..."></textarea>
+                            </div>
+                            <div class="form-group"
+                                style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                                <div class="field-header">
+                                    <label>Mục 6 (Tên & Mô tả)</label>
+                                    <button class="reset-btn" onclick="resetServiceCard(6)"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-service_name_6" placeholder="Savings & Goals"
+                                    style="margin-bottom:8px;">
+                                <textarea id="sc-service_desc_6" rows="2" placeholder="Mô tả mục 6..."></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <hr style="border-color:var(--border); margin:40px 0;">
+
+                    <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-list-ol"></i> QUY TRÌNH LÀM
+                        VIỆC (HOW IT WORKS)</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Nhãn nhỏ (How It Works)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('process_tag')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-process_tag" placeholder="Mặc định: How It Works">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề quy trình (Process Heading)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('process_title')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-process_title" placeholder="Mặc định: Getting Started is Simple">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top:20px;">
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Bước 1 (Tiêu đề & Mô tả)</label>
+                                <button class="reset-btn" onclick="resetProcessStep(1)"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-process_step_title_1" placeholder="Book a Consultation"
+                                style="margin-bottom:8px;">
+                            <textarea id="sc-process_step_desc_1" rows="2" placeholder="Mô tả bước 1..."></textarea>
+                        </div>
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Bước 2 (Tiêu đề & Mô tả)</label>
+                                <button class="reset-btn" onclick="resetProcessStep(2)"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-process_step_title_2" placeholder="Financial Assessment"
+                                style="margin-bottom:8px;">
+                            <textarea id="sc-process_step_desc_2" rows="2" placeholder="Mô tả bước 2..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:20px;">
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Bước 3 (Tiêu đề & Mô tả)</label>
+                                <button class="reset-btn" onclick="resetProcessStep(3)"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-process_step_title_3" placeholder="Custom Strategy"
+                                style="margin-bottom:8px;">
+                            <textarea id="sc-process_step_desc_3" rows="2" placeholder="Mô tả bước 3..."></textarea>
+                        </div>
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Bước 4 (Tiêu đề & Mô tả)</label>
+                                <button class="reset-btn" onclick="resetProcessStep(4)"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-process_step_title_4" placeholder="Ongoing Support"
+                                style="margin-bottom:8px;">
+                            <textarea id="sc-process_step_desc_4" rows="2" placeholder="Mô tả bước 4..."></textarea>
+                        </div>
+                    </div>
+
+                    <hr style="border-color:var(--border); margin:40px 0;">
+
+                    <h4 style="margin-bottom:24px; color:var(--primary);"><i class="fa fa-question-circle"></i> CÂU HỎI
+                        THƯỜNG GẶP (FAQ)</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Nhãn nhỏ (Common Questions)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('faq_tag')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-faq_tag" placeholder="Mặc định: Common Questions">
+                        </div>
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Tiêu đề FAQ (FAQ Heading)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('faq_title')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-faq_title" placeholder="Mặc định: Frequently Asked Questions">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="field-header">
+                            <label>Mô tả FAQ (Đoạn dẫn dưới tiêu đề)</label>
+                            <button class="reset-btn" onclick="resetSiteContent('faq_desc')"><i
+                                    class="fa fa-rotate-left"></i> Reset</button>
+                        </div>
+                        <textarea id="sc-faq_desc" rows="2"
+                            placeholder="Mặc định: Can't find what you're looking for?..."></textarea>
+                    </div>
+
+                    <div class="form-row" style="margin-top:20px;">
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Câu hỏi 1 (Q & A)</label>
+                                <button class="reset-btn" onclick="resetFAQ(1)"><i class="fa fa-rotate-left"></i>
+                                    Reset</button>
+                            </div>
+                            <input type="text" id="sc-faq_q_1" placeholder="Câu hỏi 1" style="margin-bottom:8px;">
+                            <textarea id="sc-faq_a_1" rows="2" placeholder="Câu trả lời 1..."></textarea>
+                        </div>
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Câu hỏi 2 (Q & A)</label>
+                                <button class="reset-btn" onclick="resetFAQ(2)"><i class="fa fa-rotate-left"></i>
+                                    Reset</button>
+                            </div>
+                            <input type="text" id="sc-faq_q_2" placeholder="Câu hỏi 2" style="margin-bottom:8px;">
+                            <textarea id="sc-faq_a_2" rows="2" placeholder="Câu trả lời 2..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:20px;">
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Câu hỏi 3 (Q & A)</label>
+                                <button class="reset-btn" onclick="resetFAQ(3)"><i class="fa fa-rotate-left"></i>
+                                    Reset</button>
+                            </div>
+                            <input type="text" id="sc-faq_q_3" placeholder="Câu hỏi 3" style="margin-bottom:8px;">
+                            <textarea id="sc-faq_a_3" rows="2" placeholder="Câu trả lời 3..."></textarea>
+                        </div>
+                        <div class="form-group"
+                            style="padding:15px; border:1px solid var(--border); border-radius:8px;">
+                            <div class="field-header">
+                                <label>Câu hỏi 4 (Q & A)</label>
+                                <button class="reset-btn" onclick="resetFAQ(4)"><i class="fa fa-rotate-left"></i>
+                                    Reset</button>
+                            </div>
+                            <input type="text" id="sc-faq_q_4" placeholder="Câu hỏi 4" style="margin-bottom:8px;">
+                            <textarea id="sc-faq_a_4" rows="2" placeholder="Câu trả lời 4..."></textarea>
+                        </div>
+                    </div>
+                </div> <!-- END Services -->
+
+                <!-- Site Content: Insights -->
+                <div id="tab-site-insights" class="tab">
+                    <div class="form-box">
+                        <p style="margin-bottom:20px; color:var(--muted)">Thay đổi banner, nhãn và tiêu đề chính của
+                            trang tin tức.</p>
+
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Nhãn trang (Section Tag)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('page_tag_insights')"><i
+                                        class="fa fa-rotate-left"></i> Khôi phục mặc định</button>
+                            </div>
+                            <input type="text" id="sc-page_tag_insights"
+                                placeholder="Ví dụ: Knowledge Hub, Tin tức công nghệ...">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Banner trang Insights</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('page_banner_insights')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="file" id="sc-f-page_banner_insights" accept="image/*"
+                                    onchange="previewSCImg('page_banner_insights', this)">
+                                <div class="sc-preview-wrap" style="margin-top:10px;">
+                                    <img id="sc-preview-page_banner_insights" class="sc-preview-img"
+                                        style="width:100%; height:120px; object-fit:cover; border-radius:8px; display:none; border: 1px solid var(--border);">
+                                </div>
+                                <input type="hidden" id="sc-page_banner_insights">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Tiêu đề chính (H1)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('page_title_insights')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-page_title_insights"
+                                    placeholder="Ví dụ: Tin tức công nghệ mới nhất...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Site Content: Contact -->
+                <div id="tab-site-contact" class="tab">
+                    <div class="form-box">
+                        <p style="margin-bottom:20px; color:var(--muted)">Thay đổi banner, nhãn và các thông tin hỗ trợ
+                            trên trang liên hệ.</p>
+
+                        <div class="form-group">
+                            <div class="field-header">
+                                <label>Nhãn trang (Hero Tag)</label>
+                                <button class="reset-btn" onclick="resetSiteContent('contact_hero_tag')"><i
+                                        class="fa fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <input type="text" id="sc-contact_hero_tag"
+                                placeholder="Ví dụ: Get In Touch, Liên hệ với chúng tôi...">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Banner trang Contact</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('contact_hero_banner')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="file" id="sc-f-contact_hero_banner" accept="image/*"
+                                    onchange="previewSCImg('contact_hero_banner', this)">
+                                <div class="sc-preview-wrap" style="margin-top:10px;">
+                                    <img id="sc-preview-contact_hero_banner" class="sc-preview-img"
+                                        style="width:100%; height:120px; object-fit:cover; border-radius:8px; display:none; border: 1px solid var(--border);">
+                                </div>
+                                <input type="hidden" id="sc-contact_hero_banner">
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Tiêu đề chính (H1)</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('contact_hero_title')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                </div>
+                                <input type="text" id="sc-contact_hero_title"
+                                    placeholder="Ví dụ: Liên hệ với TechVault...">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top:20px;">
+                            <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-check-circle"></i> TẠI
+                                SAO CHỌN CHÚNG TÔI</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="field-header">
+                                        <label>Lý do 1</label>
+                                        <button class="reset-btn" onclick="resetSiteContent('contact_why_1')"><i
+                                                class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                    <input type="text" id="sc-contact_why_1" placeholder="Ví dụ: Tư vấn miễn phí">
+                                </div>
+                                <div class="form-group">
+                                    <div class="field-header">
+                                        <label>Lý do 2</label>
+                                        <button class="reset-btn" onclick="resetSiteContent('contact_why_2')"><i
+                                                class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                    <input type="text" id="sc-contact_why_2" placeholder="Ví dụ: Phản hồi trong 24h">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="field-header">
+                                        <label>Lý do 3</label>
+                                        <button class="reset-btn" onclick="resetSiteContent('contact_why_3')"><i
+                                                class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                    <input type="text" id="sc-contact_why_3"
+                                        placeholder="Ví dụ: Chuyên gia giàu kinh nghiệm">
+                                </div>
+                                <div class="form-group">
+                                    <div class="field-header">
+                                        <label>Lý do 4</label>
+                                        <button class="reset-btn" onclick="resetSiteContent('contact_why_4')"><i
+                                                class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                    <input type="text" id="sc-contact_why_4" placeholder="Ví dụ: Cam kết bảo mật">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Lý do 5</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('contact_why_5')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                <input type="text" id="sc-contact_why_5" placeholder="Ví dụ: Hỗ trợ 24/7">
+                            </div>
+                        </div>
+
+                        <hr style="border-color:var(--border); margin:32px 0;">
+
+                        <div class="form-group">
+                            <h4 style="margin-bottom:16px; color:var(--primary);"><i class="fa fa-clock"></i> GIỜ LÀM VIỆC (OFFICE HOURS)</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="field-header">
+                                        <label>Thứ 2 - Thứ 6</label>
+                                        <button class="reset-btn" onclick="resetSiteContent('contact_hours_wk')"><i class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                    <div class="hours-ui" id="ui-contact_hours_wk">
+                                        <select class="hours-status-select" onchange="syncHoursUI('contact_hours_wk')">
+                                            <option value="open">Mở cửa</option>
+                                            <option value="closed">Đóng cửa</option>
+                                        </select>
+                                        <div class="hours-time-wrap">
+                                            <input type="time" class="h-start" onchange="syncHoursUI('contact_hours_wk')">
+                                            <span>-</span>
+                                            <input type="time" class="h-end" onchange="syncHoursUI('contact_hours_wk')">
+                                        </div>
+                                        <input type="hidden" id="sc-contact_hours_wk">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="field-header">
+                                        <label>Thứ 7</label>
+                                        <button class="reset-btn" onclick="resetSiteContent('contact_hours_sat')"><i class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                    <div class="hours-ui" id="ui-contact_hours_sat">
+                                        <select class="hours-status-select" onchange="syncHoursUI('contact_hours_sat')">
+                                            <option value="open">Mở cửa</option>
+                                            <option value="closed">Đóng cửa</option>
+                                        </select>
+                                        <div class="hours-time-wrap">
+                                            <input type="time" class="h-start" onchange="syncHoursUI('contact_hours_sat')">
+                                            <span>-</span>
+                                            <input type="time" class="h-end" onchange="syncHoursUI('contact_hours_sat')">
+                                        </div>
+                                        <input type="hidden" id="sc-contact_hours_sat">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="field-header">
+                                    <label>Chủ Nhật</label>
+                                    <button class="reset-btn" onclick="resetSiteContent('contact_hours_sun')"><i
+                                            class="fa fa-rotate-left"></i> Reset</button>
+                                    </div>
+                                <div class="hours-ui" id="ui-contact_hours_sun">
+                                    <select class="hours-status-select" onchange="syncHoursUI('contact_hours_sun')">
+                                        <option value="open">Mở cửa</option>
+                                        <option value="closed">Đóng cửa</option>
+                                    </select>
+                                    <div class="hours-time-wrap">
+                                        <input type="time" class="h-start" onchange="syncHoursUI('contact_hours_sun')">
+                                        <span>-</span>
+                                        <input type="time" class="h-end" onchange="syncHoursUI('contact_hours_sun')">
+                                    </div>
+                                    <input type="hidden" id="sc-contact_hours_sun">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="margin: 32px 0 16px; color: var(--primary);">Mạng xã hội (Social Links)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fab fa-facebook"></i> Facebook Link</label>
+                                <input type="text" id="sc-social_fb" placeholder="https://facebook.com/...">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-twitter"></i> Twitter Link</label>
+                                <input type="text" id="sc-social_tw" placeholder="https://twitter.com/...">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fab fa-linkedin"></i> LinkedIn Link</label>
+                                <input type="text" id="sc-social_li" placeholder="https://linkedin.com/in/...">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-instagram"></i> Instagram Link</label>
+                                <input type="text" id="sc-social_ins" placeholder="https://instagram.com/...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inbox: Messages -->
+                <div id="tab-inbox" class="tab">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:60px;">ID</th>
+                                    <th style="width:180px;">Người gửi</th>
+                                    <th style="width:220px;">Thông tin liên hệ</th>
+                                    <th style="width:180px;">Dịch vụ quan tâm</th>
+                                    <th>Tin nhắn</th>
+                                    <th style="width:140px;">Ngày gửi</th>
+                                    <th style="width:100px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="messages-list"></tbody>
+                        </table>
+                        <div id="no-messages-msg"
+                            style="text-align:center; padding:40px; display:none; color:var(--muted);">
+                            <i class="fa fa-envelope-open" style="font-size:3rem; margin-bottom:16px; opacity:0.3;"></i>
+                            <p>Chưa có tin nhắn nào từ khách hàng.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const SB_URL = "https://csjwyvngqynqjbuwtsdv.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzand5dm5ncXlucWpidXd0c2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NTEzMjQsImV4cCI6MjA5NDEyNzMyNH0.21KDagCTN31_ytNhhqSQZ0_mvXzu7QbIEFYgzpgrZDY";
+        const sb = window.supabase.createClient(SB_URL, SB_KEY);
+        let quill;
+
+        const TAB_TITLES = {
+            'dashboard': 'Hệ thống',
+            'posts': 'Bài viết',
+            'editor': 'Soạn bài',
+            'category': 'Chuyên mục',
+            'comments': 'Bình luận',
+            'site-content': 'Cấu hình Trang chủ',
+            'site-about': 'Cấu hình trang About',
+            'site-services': 'Cấu hình trang Services',
+            'site-insights': 'Cấu hình trang Insights',
+            'site-contact': 'Cấu hình trang Contact',
+            'inbox': 'Tin nhắn'
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['image', 'link'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Register custom image handler
+            const toolbar = quill.getModule('toolbar');
+            toolbar.addHandler('image', () => {
+                selectAndUploadImage();
+            });
+
+            // Register drag and drop inline image upload
+            const editorEl = document.getElementById('editor-container');
+            if (editorEl) {
+                editorEl.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                editorEl.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0 && files[0].type.startsWith('image/')) {
+                        await uploadAndInsertInlineFile(files[0]);
+                    }
+                });
+            }
+
+            loadAll();
+            startAutosave();
+            checkAutosaveOnLoad();
+        });
+
+        // ============ LOAD ALL DATA ============
+        async function loadAll() {
+            try {
+                const [
+                    { count: totalPosts },
+                    { count: pubPosts },
+                    { count: totalComments },
+                    { count: totalSC },
+                    { count: totalMsg },
+                    { data: postsData }
+                ] = await Promise.all([
+                    sb.from('posts').select('*', { count: 'exact', head: true }),
+                    sb.from('posts').select('*', { count: 'exact', head: true }).eq('published', true),
+                    sb.from('comments').select('*', { count: 'exact', head: true }),
+                    sb.from('site_content').select('*', { count: 'exact', head: true }),
+                    sb.from('contact_messages').select('*', { count: 'exact', head: true }),
+                    sb.from('posts').select('*').order('created_at', { ascending: false })
+                ]);
+
+                document.getElementById('stat-total').textContent = totalPosts || 0;
+                document.getElementById('stat-published').textContent = pubPosts || 0;
+                document.getElementById('stat-comments').textContent = totalComments || 0;
+                document.getElementById('stat-site-content').textContent = totalSC || 0;
+
+                const unreadCount = document.getElementById('unread-count');
+                if (unreadCount && totalMsg > 0) {
+                    unreadCount.textContent = totalMsg;
+                    unreadCount.style.display = 'inline-block';
+                } else if (unreadCount) {
+                    unreadCount.style.display = 'none';
+                }
+
+                const list = document.getElementById('posts-list');
+                list.innerHTML = (postsData || []).map(p => `
+                    <tr>
+                        <td><strong>${p.title}</strong></td>
+                        <td class="text-center"><span class="badge badge-primary">${p.category}</span></td>
+                        <td class="text-center"><span class="badge ${p.published ? 'badge-live' : 'badge-draft'}">${p.published ? 'Live' : 'Draft'}</span></td>
+                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                        <td class="text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="editPost(${p.id})"><i class="fa fa-edit"></i> Sửa</button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePost(${p.id})"><i class="fa fa-trash"></i> Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("LoadAll error:", err);
+            }
+        }
+
+        // ============ INBOX ============
+        async function loadMessages() {
+            const { data, error } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
+            const list = document.getElementById('messages-list');
+            const noMsg = document.getElementById('no-messages-msg');
+            const unreadCount = document.getElementById('unread-count');
+
+            if (!data || data.length === 0) {
+                list.innerHTML = '';
+                noMsg.style.display = 'block';
+                if (unreadCount) unreadCount.style.display = 'none';
+                return;
+            }
+            noMsg.style.display = 'none';
+            if (unreadCount) {
+                unreadCount.textContent = data.length;
+                unreadCount.style.display = 'inline-block';
+            }
+
+            list.innerHTML = data.map(m => `
+                <tr>
+                    <td>${m.id}</td>
+                    <td><strong>${m.full_name}</strong></td>
+                    <td>
+                        <div style="font-size:0.85rem; color:var(--muted)"><i class="fa fa-envelope"></i> ${m.email}</div>
+                        <div style="font-size:0.85rem; color:var(--muted)"><i class="fa fa-phone"></i> ${m.phone || '-'}</div>
+                    </td>
+                    <td class="text-center"><span class="badge badge-warning">${m.service || 'Chung'}</span></td>
+                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${m.message}">${m.message}</td>
+                    <td>${new Date(m.created_at).toLocaleDateString()}</td>
+                    <td class="text-right">
+                        <button class="btn btn-danger btn-sm" onclick="deleteMessage(${m.id})"><i class="fa fa-trash"></i> Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.deleteMessage = async (id) => {
+            if (await showConfirm("Xóa tin nhắn", "Xóa tin nhắn này khỏi hệ thống?")) {
+                const { error } = await sb.from('contact_messages').delete().eq('id', id);
+                if (error) showAlert("Lỗi", error.message, "error");
+                else loadMessages();
+            }
+        };
+
+        window.deleteAllMessages = async () => {
+            if (await showConfirm("Cảnh báo xóa sạch", "Hành động này sẽ XÓA TOÀN BỘ tin nhắn trong hộp thư. Bạn có chắc chắn muốn tiếp tục?")) {
+                setLoading(true, "Đang xóa toàn bộ tin nhắn...");
+                const { error } = await sb.from('contact_messages').delete().neq('id', 0);
+                if (error) showAlert("Lỗi", error.message, "error");
+                else {
+                    loadMessages();
+                }
+                setLoading(false);
+            }
+        };
+
+        // ============ COMMENTS ============
+        async function loadComments() {
+            const { data, error } = await sb.from('comments').select('*, posts(title, category)').order('created_at', { ascending: false });
+            const list = document.getElementById('comments-list');
+            const noMsg = document.getElementById('no-comments-msg');
+
+            if (!data || data.length === 0) {
+                list.innerHTML = '';
+                noMsg.style.display = 'block';
+                return;
+            }
+            noMsg.style.display = 'none';
+            list.innerHTML = data.map(c => `
+            <tr>
+                <td>${c.id}</td>
+                <td>${c.posts ? c.posts.title : '(Đã xóa)'}</td>
+                <td><span class="badge" style="background:#e0e7ff; color:#4338ca;">${c.posts ? c.posts.category : '-'}</span></td>
+                <td>${c.user_name}</td>
+                <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.comment_body}</td>
+                <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteComment(${c.id})"><i class="fa fa-trash"></i> Xóa</button></td>
+            </tr>
+        `).join('');
+        }
+
+        window.deleteComment = async (id) => {
+            if (await showConfirm("Xóa bình luận", "Xóa bình luận này? (Spam / Nội dung không phù hợp)")) {
+                const { error } = await sb.from('comments').delete().eq('id', id);
+                if (error) showAlert("Lỗi", error.message, "error");
+                else { loadComments(); loadAll(); }
+            }
+        };
+
+        window.deleteAllComments = async () => {
+            if (await showConfirm("Cảnh báo xóa", "Hành động này sẽ XÓA TOÀN BỘ bình luận trên website. Bạn có chắc chắn không?")) {
+                setLoading(true, "Đang xóa toàn bộ bình luận...");
+                const { error } = await sb.from('comments').delete().neq('id', 0);
+                if (error) showAlert("Lỗi", error.message, "error");
+                else {
+                    loadComments();
+                    loadAll();
+                }
+                setLoading(false);
+            }
+        };
+
+        // ============ UI UTILS ============
+        window.refreshData = async (btn, fn) => {
+            const icon = btn.querySelector('i');
+            if (icon) icon.classList.add('fa-spin-fast');
+            btn.disabled = true;
+            try { await fn(); } finally {
+                if (icon) icon.classList.remove('fa-spin-fast');
+                btn.disabled = false;
+            }
+        };
+
+        function setLoading(show, text = "Đang xử lý...") {
+            const overlay = document.getElementById('loading-overlay');
+            const txt = document.getElementById('loading-text');
+            if (txt) txt.textContent = text;
+            if (show) overlay.classList.add('show');
+            else overlay.classList.remove('show');
+        }
+
+        // ============ SITE CONTENT ============
+        const SC_DEFAULTS = {
+            'hero_badge': 'Latest Tech News · AI · Programming · Cybersecurity',
+            'hero_title': 'Explore the Future of Technology',
+            'hero_desc': 'Latest news about AI, programming, cybersecurity, and modern technology trends.',
+            'contact_phone': '+1 800 555 0199',
+            'contact_email': 'hello@techvault.dev',
+            'contact_address': 'Ho Chi Minh City, Vietnam',
+            'hero_img_main': 'img/bg-img/1.jpg',
+            'hero_img_accent': 'img/bg-img/3.jpg',
+            'whyus_img_main': 'img/bg-img/5.jpg',
+            'cta_banner_img': 'img/bg-img/6.jpg',
+            'about_hero_banner': 'img/bg-img/13.jpg',
+            'about_hero_title': 'Innovating Technology',
+            'about_hero_tag': 'Our Story',
+            'about_title': 'A Platform Built for <span>Developers</span>',
+            'about_lead': 'We are a team of developers and technology enthusiasts dedicated to sharing knowledge about modern software.',
+            'services_hero_banner': 'img/bg-img/21.jpg',
+            'services_hero_title': 'Our Services',
+            'services_tag': 'Expertise',
+            'services_title': 'We Provide Best <span>Technology</span> Solutions',
+            'services_desc': 'From AI implementation to custom software development.',
+            'contact_hero_banner': 'img/bg-img/22.jpg',
+            'contact_hero_tag': 'Get In Touch',
+            'contact_hero_title': "We'd Love to <span>Hear From You</span>",
+            'contact_why_1': 'Free initial consultation',
+            'contact_why_2': 'Response within 24 hours',
+            'contact_why_3': 'No sales pressure — ever',
+            'contact_why_4': 'Certified technology experts',
+            'contact_why_5': 'Commitment to quality',
+            'contact_hours_wk': '9:00 AM – 6:00 PM',
+            'contact_hours_sat': '10:00 AM – 2:00 PM',
+            'contact_hours_sun': 'Closed',
+            'page_banner_insights': 'img/bg-img/14.jpg',
+            'page_tag_insights': 'News & Trends',
+            'page_title_insights': 'Our Latest <span>Insights</span>',
+            'social_fb': '#', 'social_tw': '#', 'social_li': '#', 'social_ins': '#'
+        };
+
+        const SC_KEYS = [
+            'hero_badge', 'hero_title', 'hero_desc',
+            'contact_phone', 'contact_email', 'contact_address',
+            'hero_img_main', 'hero_img_accent',
+            'whyus_img_main', 'cta_banner_img',
+            'testi_avatar_1', 'testi_avatar_2', 'testi_avatar_3',
+            'about_hero_banner', 'about_hero_title',
+            'about_img_1', 'about_img_2', 'about_ribbon_val', 'about_ribbon_txt',
+            'about_title', 'about_lead',
+            'team_img_1', 'team_name_1', 'team_role_1',
+            'team_img_2', 'team_name_2', 'team_role_2',
+            'team_img_3', 'team_name_3', 'team_role_3',
+            'team_img_4', 'team_name_4', 'team_role_4',
+            'services_hero_banner', 'services_hero_title',
+            'services_tag', 'services_title', 'services_desc',
+            'service_name_1', 'service_desc_1',
+            'service_name_2', 'service_desc_2',
+            'service_name_3', 'service_desc_3',
+            'service_name_4', 'service_desc_4',
+            'service_name_5', 'service_desc_5',
+            'service_name_6', 'service_desc_6',
+            'process_tag', 'process_title',
+            'process_step_title_1', 'process_step_desc_1',
+            'process_step_title_2', 'process_step_desc_2',
+            'process_step_title_3', 'process_step_desc_3',
+            'process_step_title_4', 'process_step_desc_4',
+            'faq_tag', 'faq_title', 'faq_desc',
+            'faq_q_1', 'faq_a_1',
+            'faq_q_2', 'faq_a_2',
+            'faq_q_3', 'faq_a_3',
+            'faq_q_4', 'faq_a_4',
+            'page_banner_insights', 'page_tag_insights', 'page_title_insights',
+            'contact_hero_banner', 'contact_hero_tag', 'contact_hero_title',
+            'contact_why_1', 'contact_why_2', 'contact_why_3', 'contact_why_4', 'contact_why_5',
+            'contact_hours_wk', 'contact_hours_sat', 'contact_hours_sun',
+            'social_fb', 'social_tw', 'social_li', 'social_ins'
+        ];
+
+        async function loadSiteContentAdmin() {
+            const { data: allContent } = await sb.from('site_content').select('key, value');
+            const contentMap = {};
+            (allContent || []).forEach(item => contentMap[item.key] = item.value);
+
+            for (const key of SC_KEYS) {
+                const el = document.getElementById('sc-' + key);
+                const preview = document.getElementById('sc-preview-' + key);
+                const fileInput = document.getElementById('sc-f-' + key);
+
+                const hasValue = !!contentMap[key];
+                const defaultValue = SC_DEFAULTS[key] || '';
+                const currentValue = hasValue ? contentMap[key] : defaultValue;
+
+                if (el) {
+                    el.value = currentValue;
+                    // Remove or hide old hint-label if exists
+                    const hint = el.parentElement.querySelector('.hint-label');
+                    if (hint) hint.remove();
+                    
+                    if (!hasValue && defaultValue) {
+                        el.style.borderLeft = '4px solid var(--muted)';
+                        el.title = "Đang hiển thị giá trị mặc định";
+                    } else {
+                        el.style.borderLeft = '1px solid var(--border)';
+                        el.title = "";
+                    }
+                }
+
+                if (fileInput) fileInput.value = '';
+
+                if (preview) {
+                    if (hasValue || defaultValue) {
+                        const val = hasValue ? contentMap[key] : defaultValue;
+                        let imgUrl = val;
+                        const isLocalOrExternal = val.startsWith('img/') || val.startsWith('http');
+                        if (!isLocalOrExternal) {
+                            const { data: img } = sb.storage.from('blog-images').getPublicUrl(val);
+                            if (img) imgUrl = img.publicUrl;
+                        }
+                        preview.src = imgUrl;
+                        preview.style.display = 'block';
+                        preview.style.opacity = hasValue ? '1' : '0.5';
+                    } else {
+                        preview.style.display = 'none';
+                    }
+                }
+
+                // Special handling for Office Hours UI
+                if (key.startsWith('contact_hours_')) {
+                    const ui = document.getElementById('ui-' + key);
+                    if (ui) {
+                        const statusSelect = ui.querySelector('.hours-status-select');
+                        const hStart = ui.querySelector('.h-start');
+                        const hEnd = ui.querySelector('.h-end');
+                        
+                        const hint = ui.parentElement.querySelector('.hint-label');
+                        if (hint) hint.remove();
+
+                        if (currentValue.toLowerCase().includes('closed')) {
+                            statusSelect.value = 'closed';
+                            ui.classList.add('is-closed');
+                        } else {
+                            statusSelect.value = 'open';
+                            ui.classList.remove('is-closed');
+                            const parts = currentValue.split(/[–-]/); 
+                            if (parts.length === 2) {
+                                const parse24 = (t) => {
+                                    try {
+                                        t = t.trim().toUpperCase();
+                                        let [time, ampm] = t.split(' ');
+                                        let [h, m] = time.split(':');
+                                        h = parseInt(h);
+                                        if (ampm === 'PM' && h < 12) h += 12;
+                                        if (ampm === 'AM' && h === 12) h = 0;
+                                        return `${h.toString().padStart(2, '0')}:${m.padStart(2, '0')}`;
+                                    } catch(e) { return ""; }
+                                };
+                                hStart.value = parse24(parts[0]);
+                                hEnd.value = parse24(parts[1]);
+                            }
+                        }
+                        ui.style.borderLeft = !hasValue ? '4px solid var(--muted)' : '1px solid var(--border)';
+                    }
+                }
+            }
+        }
+
+        function syncHoursUI(key) {
+            const container = document.getElementById('ui-' + key);
+            const status = container.querySelector('.hours-status-select').value;
+            const start = container.querySelector('.h-start').value;
+            const end = container.querySelector('.h-end').value;
+            const hidden = document.getElementById('sc-' + key);
+
+            if (status === 'closed') {
+                container.classList.add('is-closed');
+                hidden.value = 'Closed';
+            } else {
+                container.classList.remove('is-closed');
+                if (start && end) {
+                    const format12 = (t) => {
+                        let [h, m] = t.split(':');
+                        h = parseInt(h);
+                        const ampm = h >= 12 ? 'PM' : 'AM';
+                        h = h % 12 || 12;
+                        return `${h}:${m} ${ampm}`;
+                    };
+                    hidden.value = `${format12(start)} – ${format12(end)}`;
+                } else {
+                    hidden.value = '';
+                }
+            }
+        }
+
+        function showModal(title, text, type = 'warning', isConfirm = true) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('confirm-modal-overlay');
+                const okBtn = document.getElementById('confirm-ok-btn');
+                const cancelBtn = document.getElementById('confirm-cancel-btn');
+                const iconContainer = document.getElementById('modal-icon');
+                
+                let iconClass = 'fa-exclamation-triangle';
+                if (type === 'error') iconClass = 'fa-circle-xmark';
+                if (type === 'success') iconClass = 'fa-check-circle';
+                if (type === 'info') iconClass = 'fa-circle-info';
+                
+                iconContainer.className = `modal-icon ${type}`;
+                iconContainer.innerHTML = `<i class="fa ${iconClass}"></i>`;
+
+                document.getElementById('confirm-title').textContent = title;
+                document.getElementById('confirm-text').textContent = text;
+                
+                // Alert mode: hide cancel button
+                cancelBtn.style.display = isConfirm ? 'block' : 'none';
+                okBtn.textContent = isConfirm ? 'Đồng ý' : 'Đóng';
+
+                overlay.classList.add('show');
+
+                const cleanup = (val) => {
+                    overlay.classList.remove('show');
+                    okBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                    resolve(val);
+                };
+
+                okBtn.onclick = () => cleanup(true);
+                cancelBtn.onclick = () => cleanup(false);
+                overlay.onclick = (e) => { if (e.target === overlay) cleanup(false); };
+            });
+        }
+
+        window.showConfirm = (title, text) => showModal(title, text, 'warning', true);
+        window.showAlert = (title, text, type = 'info') => showModal(title, text, type, false);
+
+        async function resetSiteContent(key) {
+            if (await showConfirm("Khôi phục mặc định", "Bạn có chắc muốn khôi phục nội dung gốc cho mục này? Hành động này không thể hoàn tác.")) {
+                setLoading(true, "Đang khôi phục...");
+                const { error } = await sb.from('site_content').delete().eq('key', key);
+                setLoading(false);
+                if (error) showToast("Lỗi: " + error.message, "error");
+                else {
+                    showToast("Đã khôi phục thành công!", "success");
+                    loadSiteContentAdmin();
+                    if (currentCategory) loadCategorySettings(currentCategory);
+                    loadAll();
+                }
+            }
+        }
+
+        async function resetTeamMember(idx) {
+            if (await showConfirm(`Thành viên ${idx}`, `Khôi phục thông tin mặc định cho thành viên ${idx}?`)) {
+                setLoading(true, "Đang khôi phục...");
+                await sb.from('site_content').delete().in('key', [`team_img_${idx}`, `team_name_${idx}`, `team_role_${idx}`]);
+                setLoading(false);
+                showToast("Đã khôi phục thành viên!", "success");
+                loadSiteContentAdmin();
+            }
+        }
+
+        async function resetServiceCard(idx) {
+            if (await showConfirm(`Dịch vụ ${idx}`, `Khôi phục dịch vụ ${idx} về mặc định?`)) {
+                setLoading(true, "Đang khôi phục...");
+                await sb.from('site_content').delete().in('key', [`service_name_${idx}`, `service_desc_${idx}`]);
+                setLoading(false);
+                showToast("Đã khôi phục dịch vụ!", "success");
+                loadSiteContentAdmin();
+            }
+        }
+
+        async function resetProcessStep(idx) {
+            if (await showConfirm(`Quy trình ${idx}`, `Khôi phục bước quy trình ${idx} về mặc định?`)) {
+                setLoading(true, "Đang khôi phục...");
+                await sb.from('site_content').delete().in('key', [`process_step_title_${idx}`, `process_step_desc_${idx}`]);
+                setLoading(false);
+                showToast("Đã khôi phục quy trình!", "success");
+                loadSiteContentAdmin();
+            }
+        }
+
+        async function resetFAQ(idx) {
+            if (await showConfirm(`FAQ ${idx}`, `Khôi phục câu hỏi FAQ ${idx} về mặc định?`)) {
+                setLoading(true, "Đang khôi phục...");
+                await sb.from('site_content').delete().in('key', [`faq_q_${idx}`, `faq_a_${idx}`]);
+                setLoading(false);
+                showToast("Đã khôi phục FAQ!", "success");
+                loadSiteContentAdmin();
+            }
+        }
+
+        function previewSCImg(key, input) {
+            const preview = document.getElementById('sc-preview-' + key);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function saveSiteContent() {
+            setLoading(true, "Đang lưu nội dung trang chủ...");
+            let success = true;
+
+            try {
+                for (const key of SC_KEYS) {
+                    const fileInput = document.getElementById('sc-f-' + key);
+                    let value = '';
+
+                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                        const file = fileInput.files[0];
+                        const fileName = `banners/${Date.now()}-${file.name}`;
+                        const { data: up, error: err } = await sb.storage.from('blog-images').upload(fileName, file);
+                        if (err) throw new Error(`Lỗi tải ảnh ${key}: ${err.message}`);
+                        value = up.path;
+                    } else {
+                        const el = document.getElementById('sc-' + key);
+                        if (!el) continue;
+                        value = el.value.trim();
+                    }
+
+                    if (!value) continue;
+
+                    const { error } = await sb.from('site_content').upsert({ key, value }, { onConflict: 'key' });
+                    if (error) throw error;
+                }
+                showToast("Cấu hình trang chủ đã được lưu!", "success");
+                loadAll();
+            } catch (err) {
+                showToast(err.message, "error");
+                success = false;
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // ============ TAB NAVIGATION ============
+        let currentCategory = '';
+        let tabHistory = ['dashboard'];
+
+        function showTab(name, btn, isBack = false) {
+            const currentTab = tabHistory[tabHistory.length - 1];
+            if (!isBack && currentTab !== name) {
+                tabHistory.push(name);
+            }
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            document.getElementById('tab-title').textContent = TAB_TITLES[name] || name;
+
+            // Show/Hide Back button
+            const backBtn = document.getElementById('btn-back');
+            if (tabHistory.length > 1) backBtn.style.display = 'flex';
+            else backBtn.style.display = 'none';
+
+            // Update Topbar Actions
+            const actions = document.getElementById('topbar-actions');
+            actions.innerHTML = ''; // Clear existing
+            actions.style.display = 'flex'; // Ensure flex for alignment
+
+            if (name === 'dashboard') {
+                actions.innerHTML = `<button class="btn btn-secondary" onclick="refreshData(this, loadAll)"><i class="fa fa-rotate"></i> Làm mới</button>`;
+            } else if (name === 'posts') {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="refreshData(this, loadAll)"><i class="fa fa-rotate"></i> Làm mới</button>
+                    <button class="btn btn-primary" onclick="openNewPost()"><i class="fa fa-plus"></i> Viết bài mới</button>
+                `;
+            } else if (name === 'category') {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="refreshData(this, refreshCategoryTab)"><i class="fa fa-rotate"></i> Làm mới</button>
+                    <button class="btn btn-secondary" onclick="toggleCatSettings()"><i class="fa fa-cog"></i> Cấu hình trang</button>
+                    <button class="btn btn-primary" id="btn-add-cat-post"><i class="fa fa-plus"></i> Đăng bài cho mục này</button>
+                `;
+            } else if (name.startsWith('site-')) {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="refreshData(this, loadSiteContentAdmin)"><i class="fa fa-rotate"></i> Tải lại</button>
+                    <button class="btn btn-primary" onclick="saveSiteContent()"><i class="fa fa-save"></i> Lưu thay đổi</button>
+                `;
+            } else if (name === 'inbox') {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="refreshData(this, loadMessages)"><i class="fa fa-rotate"></i> Làm mới</button>
+                    <button class="btn btn-danger" onclick="deleteAllMessages()"><i class="fa fa-trash-can"></i> Xóa tất cả</button>
+                `;
+            } else if (name === 'comments') {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="refreshData(this, loadComments)"><i class="fa fa-rotate"></i> Làm mới</button>
+                    <button class="btn btn-danger" onclick="deleteAllComments()"><i class="fa fa-trash-can"></i> Xóa tất cả</button>
+                `;
+            } else {
+                actions.style.display = 'none'; // Hide if no actions
+            }
+
+            if (btn) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            if (name === 'posts' || name === 'dashboard') loadAll();
+            if (name === 'comments') loadComments();
+            if (name === 'site-content' || name === 'site-about' || name === 'site-services' || name === 'site-insights' || name === 'site-contact') loadSiteContentAdmin();
+            if (name === 'inbox') loadMessages();
+        }
+
+        function goBack() {
+            if (tabHistory.length > 1) {
+                tabHistory.pop(); // Remove current
+                const prev = tabHistory[tabHistory.length - 1];
+
+                // If the previous was a category, we need to restore category state
+                if (prev === 'category') {
+                    showCategoryTab(currentCategory, null, true);
+                } else {
+                    showTab(prev, null, true);
+                }
+            }
+        }
+
+        async function refreshCategoryTab() {
+            await loadAll();
+            if (currentCategory) {
+                await loadCategorySettings(currentCategory);
+                await loadCategoryPosts(currentCategory);
+            }
+        }
+
+        async function showCategoryTab(catName, btn, isBack = false) {
+            currentCategory = catName;
+            showTab('category', btn, isBack);
+            document.getElementById('tab-title').textContent = `Chuyên mục: ${catName}`;
+            document.getElementById('cat-setting-name').textContent = catName;
+            document.getElementById('cat-settings-box').style.display = 'none';
+
+            // Cập nhật nút đăng bài nhanh
+            const btnAdd = document.getElementById('btn-add-cat-post');
+            btnAdd.onclick = () => openNewPost(catName);
+
+            // Cập nhật nút reset cho category settings
+            const catSlug = catName.toLowerCase().replace(/\s/g, '_');
+            document.getElementById('btn-reset-cat-title').onclick = () => resetSiteContent(`page_title_${catSlug}`);
+            document.getElementById('btn-reset-cat-banner').onclick = () => resetSiteContent(`page_banner_${catSlug}`);
+
+            // Load category settings
+            await loadCategorySettings(catName);
+
+            // Load filtered posts
+            loadCategoryPosts(catName);
+        }
+
+        async function loadCategorySettings(catName) {
+            const catSlug = catName.toLowerCase().replace(/\s/g, '_');
+            const titleKey = `page_title_${catSlug}`;
+            const bannerKey = `page_banner_${catSlug}`;
+
+            const catDefaults = {
+                'ai': { title: 'AI Technology & Innovation', banner: 'img/bg-img/24.jpg' },
+                'programming': { title: 'Software Development & Coding', banner: 'img/bg-img/22.jpg' },
+                'cybersecurity': { title: 'Cybersecurity & Data Protection', banner: 'img/bg-img/21.jpg' },
+                'tech_reviews': { title: 'Technology Reviews & Hardware', banner: 'img/bg-img/20.jpg' }
+            };
+            const def = catDefaults[catSlug] || { title: '', banner: '' };
+
+            const { data: titleData } = await sb.from('site_content').select('value').eq('key', titleKey).maybeSingle();
+            const titleInp = document.getElementById('sc-cat_title');
+            titleInp.value = titleData ? titleData.value : '';
+            titleInp.placeholder = "Mặc định: " + def.title;
+
+            const { data: bannerData } = await sb.from('site_content').select('value').eq('key', bannerKey).maybeSingle();
+            const preview = document.getElementById('sc-preview-cat_banner');
+            const hiddenBannerInput = document.getElementById('sc-cat_banner');
+
+            if (bannerData && bannerData.value) {
+                let bannerUrl = bannerData.value;
+                const isLocalOrExternal = bannerUrl.startsWith('img/') || bannerUrl.startsWith('http');
+                if (!isLocalOrExternal) {
+                    const { data: img } = sb.storage.from('blog-images').getPublicUrl(bannerData.value);
+                    if (img) bannerUrl = img.publicUrl;
+                }
+                preview.src = bannerUrl;
+                preview.style.display = 'block';
+                preview.style.opacity = '1';
+                hiddenBannerInput.value = bannerData.value;
+            } else if (def.banner) {
+                preview.src = def.banner;
+                preview.style.display = 'block';
+                preview.style.opacity = '0.6';
+                hiddenBannerInput.value = '';
+            } else {
+                preview.style.display = 'none';
+                hiddenBannerInput.value = '';
+            }
+        }
+
+        async function saveCategorySettings() {
+            setLoading(true, "Đang lưu cấu hình chuyên mục...");
+            const catSlug = currentCategory.toLowerCase().replace(/\s/g, '_');
+            const titleKey = `page_title_${catSlug}`;
+            const bannerKey = `page_banner_${catSlug}`;
+
+            try {
+                // Save Title
+                const title = document.getElementById('sc-cat_title').value.trim();
+                if (title) await sb.from('site_content').upsert({ key: titleKey, value: title }, { onConflict: 'key' });
+
+                // Save Banner
+                const fileInput = document.getElementById('sc-f-cat_banner');
+                if (fileInput.files && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    const fileName = `banners/${Date.now()}-cat-${file.name}`;
+                    const { data: up, error: err } = await sb.storage.from('blog-images').upload(fileName, file);
+                    if (err) throw err;
+                    await sb.from('site_content').upsert({ key: bannerKey, value: up.path }, { onConflict: 'key' });
+                }
+
+                showToast(`Đã cập nhật cấu hình cho ${currentCategory}!`, "success");
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function toggleCatSettings() {
+            const box = document.getElementById('cat-settings-box');
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function loadCategoryPosts(catName) {
+            const { data } = await sb.from('posts').select('*').eq('category', catName).order('created_at', { ascending: false });
+            const list = document.getElementById('cat-posts-list');
+            list.innerHTML = (data || []).map(p => `
+                <tr>
+                    <td><strong>${p.title}</strong></td>
+                    <td class="text-center"><span class="badge ${p.published ? 'badge-live' : 'badge-draft'}">${p.published ? 'Live' : 'Draft'}</span></td>
+                    <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                    <td class="text-right">
+                        <button class="btn btn-secondary btn-sm" onclick="editPost(${p.id})" title="Sửa bài"><i class="fa fa-edit"></i></button>
+                        <button class="btn btn-info btn-sm" onclick="viewPostComments(${p.id}, '${p.title.replace(/'/g, "\\'")}')" title="Xem bình luận"><i class="fa fa-comments"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePost(${p.id})" title="Xóa bài"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function viewPostComments(postId, postTitle) {
+            document.getElementById('comment-modal-title').textContent = `Bình luận: ${postTitle}`;
+            const body = document.getElementById('comment-modal-body');
+            body.innerHTML = '<p style="text-align:center; padding:20px;">Đang tải bình luận...</p>';
+            document.getElementById('comment-modal').classList.add('show');
+
+            const { data, error } = await sb.from('comments').select('*').eq('post_id', postId).order('created_at', { ascending: false });
+
+            if (error) {
+                body.innerHTML = `<p style="color:var(--red); text-align:center; padding:20px;">Lỗi: ${error.message}</p>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                body.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">Chưa có bình luận nào cho bài viết này.</p>';
+                return;
+            }
+
+            body.innerHTML = data.map(c => `
+                <div class="comment-item">
+                    <div class="comment-meta">
+                        <strong>${c.user_name}</strong>
+                        <span>${new Date(c.created_at).toLocaleString()}</span>
+                    </div>
+                    <p style="margin:0; font-size:0.95rem;">${c.comment_body}</p>
+                    <div style="margin-top:8px; text-align:right;">
+                        <button class="btn btn-danger btn-xs" style="padding:2px 8px; font-size:11px;" onclick="deleteCommentFromModal(${c.id}, ${postId}, '${postTitle.replace(/'/g, "\\'")}')">Xóa</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function closeCommentModal() {
+            document.getElementById('comment-modal').classList.remove('show');
+        }
+
+        window.deleteCommentFromModal = async (id, postId, postTitle) => {
+            if (confirm("Xóa bình luận này?")) {
+                const { error } = await sb.from('comments').delete().eq('id', id);
+                if (error) showToast("Lỗi: " + error.message, "error");
+                else {
+                    showToast("Đã xóa bình luận!", "success");
+                    viewPostComments(postId, postTitle); // Reload modal
+                    loadComments(); // Reload global list
+                    loadAll(); // Reload dashboard
+                }
+            }
+        };
+
+        // ============ IMAGE PREVIEW ============
+        function previewImg(input) {
+            const preview = document.getElementById('img-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ============ POSTS CRUD ============
+        function openNewPost(cat) {
+            document.getElementById('f-id').value = '';
+            document.getElementById('f-title').value = '';
+            document.getElementById('f-slug').value = '';
+            document.getElementById('f-excerpt').value = '';
+            document.getElementById('f-tags').value = '';
+            document.getElementById('f-author').value = '';
+            document.getElementById('f-pub').checked = false;
+            document.getElementById('img-preview').style.display = 'none';
+            document.getElementById('f-img').value = '';
+            if (cat) document.getElementById('f-cat').value = cat;
+            quill.root.innerHTML = '';
+            showTab('editor');
+        }
+
+        window.editPost = async (id) => {
+            const { data } = await sb.from('posts').select('*').eq('id', id).single();
+            if (!data) return;
+            document.getElementById('f-id').value = data.id;
+            document.getElementById('f-title').value = data.title;
+            document.getElementById('f-slug').value = data.slug;
+            document.getElementById('f-excerpt').value = data.excerpt || '';
+            document.getElementById('f-tags').value = data.tags || '';
+            document.getElementById('f-pub').checked = data.published;
+            document.getElementById('f-cat').value = data.category;
+            
+            let author = "";
+            let content = data.content || '';
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            const metaElem = doc.getElementById('ve-post-metadata');
+            if (metaElem) {
+                author = decodeURIComponent(metaElem.getAttribute('data-author') || "");
+                metaElem.remove();
+                content = doc.body.innerHTML;
+            }
+            document.getElementById('f-author').value = author;
+            quill.root.innerHTML = content;
+
+            if (data.image_key) {
+                const { data: img } = sb.storage.from('blog-images').getPublicUrl(data.image_key);
+                document.getElementById('img-preview').src = img.publicUrl;
+                document.getElementById('img-preview').style.display = 'block';
+            } else {
+                document.getElementById('img-preview').style.display = 'none';
+            }
+            showTab('editor');
+        }
+
+        async function deletePost(id) {
+            if (await showConfirm("Xóa bài viết", "Chắc chắn muốn xóa bài viết này?")) {
+                const { error } = await sb.from('posts').delete().eq('id', id);
+                if (error) {
+                    showToast("Lỗi khi xóa bài viết: " + error.message, "error");
+                } else {
+                    showToast("Đã xóa bài viết thành công!", "success");
+                    await loadAll();
+                    if (currentCategory) {
+                        await loadCategoryPosts(currentCategory);
+                    }
+                }
+            }
+        }
+
+        async function checkConn() {
+            const { error } = await sb.from('posts').select('id').limit(1);
+            if (error) showAlert("Lỗi kết nối", error.message, "error");
+            else showAlert("Thành công", "Kết nối Supabase thành công!", "success");
+        }
+
+        async function handleSave() {
+            const title = document.getElementById('f-title').value.trim();
+            if (!title) return showToast("Vui lòng nhập tiêu đề!", "error");
+
+            setLoading(true, "Đang lưu bài viết...");
+            let imageKey = null;
+            const file = document.getElementById('f-img').files[0];
+
+            try {
+                if (file) {
+                    const fileName = `${Date.now()}-${file.name}`;
+                    const { data: up, error: err } = await sb.storage.from('blog-images').upload(fileName, file);
+                    if (err) throw err;
+                    imageKey = up.path;
+                }
+
+                const author = document.getElementById('f-author').value.trim();
+                const metaHtml = `<div id="ve-post-metadata" data-author="${encodeURIComponent(author)}" style="display:none;"></div>`;
+                const contentWithMeta = metaHtml + quill.root.innerHTML;
+
+                const id = document.getElementById('f-id').value;
+                const payload = {
+                    title,
+                    category: document.getElementById('f-cat').value,
+                    slug: document.getElementById('f-slug').value || (title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now()),
+                    excerpt: document.getElementById('f-excerpt').value,
+                    tags: document.getElementById('f-tags').value,
+                    content: contentWithMeta,
+                    published: document.getElementById('f-pub').checked
+                };
+                if (imageKey) payload.image_key = imageKey;
+
+                const res = id ? await sb.from('posts').update(payload).eq('id', id) : await sb.from('posts').insert([payload]);
+                if (res.error) throw res.error;
+
+                // Xóa bản nháp tự động đã lưu trong localStorage khi lưu thành công
+                localStorage.removeItem('ve_autosave_draft');
+
+                // Đồng bộ hóa dữ liệu danh sách bài viết dưới nền
+                await loadAll();
+                if (currentCategory) {
+                    await loadCategoryPosts(currentCategory);
+                }
+
+                // Tắt trạng thái Loading trước khi hiển thị thông báo thành công!
+                setLoading(false);
+
+                // Hiển thị thông báo cực kỳ rõ ràng, đẹp mắt bằng Alert Modal glassmorphic cao cấp
+                const alertPromise = showAlert("Lưu thành công", "Bài viết của bạn đã được lưu và đồng bộ hóa thành công!", "success");
+                
+                // Tự động chuyển trang sau 1.5 giây nếu người dùng không bấm nút "Đóng"
+                const autoRedirect = setTimeout(() => {
+                    const okBtn = document.getElementById('confirm-ok-btn');
+                    if (okBtn) okBtn.click();
+                }, 1500);
+
+                await alertPromise;
+                clearTimeout(autoRedirect);
+
+                // Quay trở lại tab danh sách trước đó (Bài viết hoặc Chuyên mục)
+                if (tabHistory && tabHistory.length > 1) {
+                    goBack();
+                } else {
+                    showTab('posts');
+                }
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        window.addTag = (tag) => {
+            const input = document.getElementById('f-tags');
+            let current = input.value.trim();
+            if (!current) {
+                input.value = tag;
+            } else {
+                const tags = current.split(',').map(t => t.trim());
+                if (!tags.includes(tag)) {
+                    input.value = current + (current.endsWith(',') ? ' ' : ', ') + tag;
+                }
+            }
+        }
+
+        // ============ PREMIUM TECHNOLOGY EDITORIAL WRITING SYSTEM ENHANCEMENTS ============
+        let savedSelectionRange = null;
+        let tempInlineImgUrl = "";
+
+        async function selectAndUploadImage() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.click();
+            
+            input.onchange = async () => {
+                const file = input.files[0];
+                if (!file) return;
+                await uploadAndInsertInlineFile(file);
+            };
+        }
+
+        async function uploadAndInsertInlineFile(file) {
+            try {
+                setLoading(true, "Đang tải ảnh lên Supabase...");
+                const fileName = `inline-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                const { data: up, error: err } = await sb.storage.from('blog-images').upload(fileName, file);
+                if (err) throw err;
+                
+                const { data: publicData } = sb.storage.from('blog-images').getPublicUrl(up.path);
+                const imgUrl = publicData.publicUrl;
+                
+                savedSelectionRange = quill.getSelection(true);
+                tempInlineImgUrl = imgUrl;
+                
+                openCaptionModal();
+            } catch (e) {
+                showToast("Lỗi tải ảnh lên: " + e.message, "error");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        window.openCaptionModal = () => {
+            document.getElementById('caption-input').value = "";
+            document.getElementById('credit-input').value = "";
+            const modal = document.getElementById('caption-modal');
+            modal.classList.add('show');
+            setTimeout(() => {
+                modal.firstElementChild.style.transform = "scale(1)";
+            }, 50);
+        };
+
+        window.closeCaptionModal = () => {
+            const modal = document.getElementById('caption-modal');
+            modal.firstElementChild.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                modal.classList.remove('show');
+            }, 150);
+            tempInlineImgUrl = "";
+            savedSelectionRange = null;
+        };
+
+        window.submitCaptionModal = () => {
+            if (!tempInlineImgUrl) {
+                window.closeCaptionModal();
+                return;
+            }
+
+            try {
+                const caption = document.getElementById('caption-input').value.trim();
+                const credit = document.getElementById('credit-input').value.trim();
+                
+                let figureHtml = '';
+                if (credit) {
+                    figureHtml = `
+                        <figure class="post-inline-figure" style="text-align: center; margin: 35px auto; max-width: 100%;">
+                            <img src="${tempInlineImgUrl}" alt="${caption || 'Image'}" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 100%; height: auto; display: block; margin: 0 auto;">
+                            <figcaption style="font-size: 13px; color: #718096; margin-top: 10px; font-style: italic; font-family: 'DM Sans', sans-serif; text-align: center;">
+                                ${caption} <span style="font-size: 11px; color: #a0aec0; font-style: normal; margin-left: 5px;">— Nguồn: ${credit}</span>
+                            </figcaption>
+                        </figure>
+                        <p><br></p>
+                    `;
+                } else {
+                    figureHtml = `
+                        <figure class="post-inline-figure" style="text-align: center; margin: 35px auto; max-width: 100%;">
+                            <img src="${tempInlineImgUrl}" alt="${caption || 'Image'}" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 100%; height: auto; display: block; margin: 0 auto;">
+                            <figcaption style="font-size: 13px; color: #718096; margin-top: 10px; font-style: italic; font-family: 'DM Sans', sans-serif; text-align: center;">
+                                ${caption}
+                            </figcaption>
+                        </figure>
+                        <p><br></p>
+                    `;
+                }
+                
+                const insertIndex = savedSelectionRange ? savedSelectionRange.index : 0;
+                quill.clipboard.dangerouslyPasteHTML(insertIndex, figureHtml);
+                showToast("Đã chèn hình ảnh thành công!", "success");
+            } catch (err) {
+                console.error("Lỗi chèn hình ảnh:", err);
+                showToast("Lỗi chèn hình ảnh: " + err.message, "error");
+            } finally {
+                window.closeCaptionModal();
+            }
+        };
+
+        // ============ LIVE PREVIEW SYSTEM ============
+        window.openLivePreview = () => {
+            const title = document.getElementById('f-title').value.trim() || "Untitled Article";
+            const category = document.getElementById('f-cat').value;
+            const excerpt = document.getElementById('f-excerpt').value.trim() || "Tóm tắt bài viết sẽ hiển thị ở đây trên trang thật...";
+            const tagsVal = document.getElementById('f-tags').value.trim();
+            const tagsHtml = tagsVal ? tagsVal.split(',').map(t => `<a href="#" style="background:var(--ve-light); border:1px solid var(--ve-border); padding:4px 12px; border-radius:20px; text-decoration:none; font-size:12px; color:var(--ve-text); margin-right:8px; font-weight:600; display:inline-block;">${t.trim()}</a>`).join('') : '';
+            const author = document.getElementById('f-author').value.trim() || "TechWorld Admin";
+            
+            const editorContent = quill.root.innerHTML;
+            
+            let imgUrl = "img/bg-img/10.jpg";
+            const imgPreview = document.getElementById('img-preview');
+            if (imgPreview && imgPreview.style.display !== 'none' && imgPreview.src) {
+                imgUrl = imgPreview.src;
+            }
+            
+            const wordCount = quill.getText().split(/\s+/).length;
+            const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+            
+            const bodyContainer = document.getElementById('preview-modal-body');
+            bodyContainer.innerHTML = `
+                <style>
+                    @import url("https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&family=Nunito:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600;700;800&display=swap");
+
+                    :root {
+                        --ve-gold: #d4a017;
+                        --ve-gold2: #b8860b;
+                        --ve-light: #f7fafc;
+                        --ve-border: #edf2f7;
+                        --ve-dark: #0d1b2a;
+                        --ve-text: #5e6f82;
+                    }
+
+                    .ve-page-hero {
+                        height: 55vh !important;
+                        max-height: 580px;
+                        min-height: 400px;
+                        position: relative;
+                        display: flex;
+                        align-items: flex-end;
+                        padding-bottom: 160px !important;
+                        overflow: hidden;
+                        box-sizing: border-box;
+                    }
+                    .ve-page-hero-bg {
+                        position: absolute;
+                        inset: 0;
+                        background-size: cover !important;
+                        background-position: center !important;
+                        background-repeat: no-repeat !important;
+                        filter: blur(4px) brightness(0.75) contrast(0.95);
+                        transform: scale(1.05);
+                        z-index: 0;
+                    }
+                    .ve-page-hero-overlay {
+                        position: absolute;
+                        inset: 0;
+                        background:
+                            radial-gradient(circle at center, rgba(13, 27, 42, 0.1) 0%, rgba(13, 27, 42, 0.45) 100%),
+                            linear-gradient(180deg,
+                                rgba(13, 27, 42, 0) 0%,
+                                rgba(13, 27, 42, 0.35) 50%,
+                                rgba(13, 27, 42, 0.85) 100%) !important;
+                        z-index: 1;
+                    }
+                    .ve-page-hero-content {
+                        position: relative;
+                        z-index: 5;
+                        padding: 0 50px;
+                        max-width: 1140px;
+                        margin: 0 auto;
+                        width: 100%;
+                        box-sizing: border-box;
+                    }
+                    .ve-insight-cat {
+                        background: rgba(212,160,23,0.15);
+                        color: var(--ve-gold);
+                        border: 1px solid rgba(212,160,23,0.3);
+                        border-radius: 50px;
+                        padding: 6px 16px;
+                        font-weight: 700;
+                        font-size: 12px;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                        display: inline-block;
+                        margin-bottom: 20px;
+                    }
+                    #hero-title {
+                        font-size: 3.2rem;
+                        font-weight: 900;
+                        line-height: 1.2;
+                        color: #fff;
+                        margin-bottom: 24px;
+                        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+                        font-family: 'Raleway', sans-serif !important;
+                    }
+                    .ve-post-meta-hero {
+                        color: rgba(255,255,255,0.7);
+                        font-size: 14px;
+                        display: flex;
+                        gap: 20px;
+                        font-family: 'Source Sans 3', sans-serif;
+                    }
+                    .ve-post-meta-hero span i {
+                        color: var(--ve-gold);
+                        margin-right: 5px;
+                    }
+
+                    .ve-article-container-overlap {
+                        margin-top: -120px;
+                        position: relative;
+                        z-index: 100;
+                        padding-bottom: 60px;
+                    }
+                    .ve-article-card {
+                        background: #ffffff;
+                        border-radius: 16px;
+                        box-shadow: 0 30px 60px rgba(13, 27, 42, 0.08);
+                        border: 1px solid rgba(226, 232, 240, 0.8);
+                        overflow: hidden;
+                        padding: 45px;
+                        max-width: 1140px;
+                        margin: 0 auto;
+                        box-sizing: border-box;
+                    }
+                    .content-col {
+                        border-right: 1px solid rgba(226, 232, 240, 0.6);
+                        padding-right: 40px;
+                    }
+                    .sidebar-col {
+                        padding-left: 40px;
+                    }
+                    .ve-sidebar {
+                        position: sticky;
+                        top: 100px;
+                    }
+                    .toc-widget {
+                        border-radius: 12px;
+                        background: var(--ve-light);
+                        border: 1px solid var(--ve-border);
+                        padding: 24px;
+                        margin-bottom: 30px;
+                    }
+                    .toc-widget h5 {
+                        font-size: 15px;
+                        font-weight: 800;
+                        margin-bottom: 16px;
+                        color: var(--ve-dark);
+                        text-transform: uppercase;
+                        letter-spacing: 0.8px;
+                        border-bottom: 2px solid var(--ve-gold);
+                        padding-bottom: 8px;
+                        display: inline-block;
+                        font-family: 'Raleway', sans-serif;
+                    }
+                    .ve-article-lead {
+                        font-size: 20px !important;
+                        font-weight: 500 !important;
+                        border-left: 4px solid var(--ve-gold);
+                        padding-left: 20px !important;
+                        margin-bottom: 30px !important;
+                        color: var(--ve-dark) !important;
+                        line-height: 1.6 !important;
+                        font-family: 'DM Sans', sans-serif !important;
+                    }
+
+                    .post-main-content {
+                        margin-top: 30px;
+                        font-size: 1.1rem;
+                        line-height: 1.8;
+                        color: #333;
+                    }
+                    .post-main-content p {
+                        font-size: 18px !important;
+                        line-height: 1.85 !important;
+                        color: #2d3748 !important;
+                        margin-bottom: 28px !important;
+                        font-family: 'DM Sans', sans-serif !important;
+                    }
+                    .post-main-content h2 {
+                        font-size: 28px !important;
+                        font-weight: 800 !important;
+                        color: var(--ve-dark) !important;
+                        margin: 40px 0 16px !important;
+                        font-family: 'Nunito', sans-serif !important;
+                        letter-spacing: -0.5px;
+                    }
+                    .post-main-content h3 {
+                        font-size: 22px !important;
+                        font-weight: 800 !important;
+                        color: var(--ve-dark) !important;
+                        margin: 32px 0 12px !important;
+                        font-family: 'Nunito', sans-serif !important;
+                    }
+                    .post-main-content ul {
+                        list-style-type: disc !important;
+                        margin: 20px 0 20px 28px !important;
+                        padding-left: 0 !important;
+                    }
+                    .post-main-content ul li {
+                        list-style-type: disc !important;
+                        font-size: 18px !important;
+                        line-height: 1.85 !important;
+                        color: #2d3748 !important;
+                        margin-bottom: 12px !important;
+                        font-family: 'DM Sans', sans-serif !important;
+                        display: list-item !important;
+                    }
+                    .post-main-content ol {
+                        list-style-type: decimal !important;
+                        margin: 20px 0 20px 28px !important;
+                        padding-left: 0 !important;
+                    }
+                    .post-main-content ol li {
+                        list-style-type: decimal !important;
+                        font-size: 18px !important;
+                        line-height: 1.85 !important;
+                        color: #2d3748 !important;
+                        margin-bottom: 12px !important;
+                        font-family: 'DM Sans', sans-serif !important;
+                        display: list-item !important;
+                    }
+                    .post-main-content blockquote {
+                        background: var(--ve-light);
+                        border-left: 4px solid var(--ve-gold);
+                        border-radius: 0 10px 10px 0;
+                        padding: 24px 28px;
+                        margin: 35px 0;
+                    }
+                    .post-main-content blockquote p {
+                        font-size: 20px !important;
+                        font-style: italic !important;
+                        font-weight: 600 !important;
+                        color: var(--ve-dark) !important;
+                        line-height: 1.6 !important;
+                        margin-bottom: 8px !important;
+                    }
+                    .post-main-content img {
+                        max-width: 100% !important;
+                        height: auto !important;
+                        border-radius: 16px;
+                        box-shadow: 0 10px 30px rgba(13, 27, 42, 0.05);
+                        display: block;
+                        margin: 24px 0;
+                        border: 1px solid rgba(226, 232, 240, 0.6);
+                        transition: transform 0.3s ease;
+                    }
+                    .post-main-content img:hover {
+                        transform: scale(1.01);
+                    }
+                    .post-inline-figure {
+                        text-align: left;
+                        margin: 35px 0;
+                        max-width: 100%;
+                    }
+                    .post-inline-figure img {
+                        max-width: 100% !important;
+                        height: auto !important;
+                        border-radius: 16px;
+                        box-shadow: 0 10px 30px rgba(13, 27, 42, 0.05);
+                        display: block;
+                        margin: 0 !important;
+                        border: 1px solid rgba(226, 232, 240, 0.6);
+                    }
+                    .post-inline-figure figcaption {
+                        font-size: 13px;
+                        color: #718096;
+                        margin-top: 12px;
+                        font-style: italic;
+                        font-family: 'DM Sans', sans-serif;
+                        text-align: left;
+                    }
+                </style>
+                <div style="font-family: 'DM Sans', sans-serif; background:#f4f6f8; padding-bottom:60px;">
+                    <!-- Header -->
+                    <div style="background:#0d1b2a; height:60px; display:flex; align-items:center; padding:0 30px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <div style="color:var(--ve-gold); font-weight:bold; font-size:18px;"><span style="background:var(--ve-gold); color:#0d1b2a; border-radius:4px; padding:2px 8px; margin-right:5px;">V</span>Vault<strong style="color:#fff;">Edge</strong></div>
+                    </div>
+                    
+                    <!-- Cinematic Hero Section -->
+                    <section class="ve-page-hero">
+                        <div class="ve-page-hero-bg" style="background-image: url('${imgUrl}');"></div>
+                        <div class="ve-page-hero-overlay"></div>
+                        <div class="ve-page-hero-content">
+                            <span class="ve-insight-cat">${category || "Technology"}</span>
+                            <h1 id="hero-title">${title}</h1>
+                            <div class="ve-post-meta-hero">
+                                <span><i class="fa fa-user"></i> ${author}</span>
+                                <span><i class="fa fa-calendar"></i> ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Main Container with overlapping editorial card -->
+                    <section class="ve-article-container-overlap">
+                        <div class="ve-article-card">
+                            <div class="row">
+                                <!-- Article Content Column -->
+                                <div class="col-12 col-lg-8 content-col">
+                                    <div class="ve-article-featured bg-img" style="background-image: url('${imgUrl}'); border-radius: 16px; margin-bottom: 30px; height: 380px; box-shadow: 0 15px 30px rgba(13, 27, 42, 0.04); border: 1px solid rgba(0,0,0,0.04); background-size: cover; background-position: center;"></div>
+                                    
+                                    <div class="ve-article-body" style="padding: 0;">
+                                        <p class="ve-article-lead">${excerpt}</p>
+                                        <div class="post-main-content">
+                                            ${editorContent}
+                                        </div>
+                                        ${tagsHtml ? `<div style="margin-top:30px; padding-top:20px; border-top:1px solid #eee; display:flex; align-items:center;">
+                                            <strong style="margin-right:15px; font-size:13px; color:#1a202c;">Tags:</strong>
+                                            ${tagsHtml}
+                                        </div>` : ''}
+                                    </div>
+                                </div>
+                                <!-- Sidebar Column -->
+                                <div class="col-12 col-lg-4 sidebar-col">
+                                    <div class="ve-sidebar">
+                                        <div class="toc-widget">
+                                            <h5>Table of Contents</h5>
+                                            <div id="dynamic-toc-area">
+                                                <ul style="margin:0; padding:0; list-style:none;">
+                                                    <li style="padding: 6px 0; border-left: 2px solid var(--ve-gold); padding-left: 12px; font-size: 13px; font-weight: 700; color: var(--ve-gold);">[Mục lục tự động]</li>
+                                                    <li style="padding: 6px 0; border-left: 2px solid transparent; padding-left: 12px; font-size: 13px; color: var(--ve-text); margin-top: 8px;">Mục lục sẽ tự động đồng bộ trên trang thật...</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            `;
+            
+            // Format preview code blocks
+            setTimeout(() => {
+                const modalBody = document.getElementById('preview-modal-body');
+                const preElements = modalBody.getElementsByTagName('pre');
+                for (let pre of preElements) {
+                    pre.style.position = 'relative';
+                    pre.style.background = '#0d1b2a';
+                    pre.style.color = '#f8f9fa';
+                    pre.style.padding = '35px 15px 15px';
+                    pre.style.borderRadius = '10px';
+                    pre.style.overflowX = 'auto';
+                    pre.style.margin = '20px 0';
+                    
+                    const dots = document.createElement('div');
+                    dots.style.cssText = `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 25px;
+                        background: rgba(255,255,255,0.05);
+                        border-bottom: 1px solid rgba(255,255,255,0.08);
+                        display: flex;
+                        align-items: center;
+                        padding: 0 12px;
+                        gap: 5px;
+                    `;
+                    dots.innerHTML = `
+                        <span style="width:8px; height:8px; border-radius:50%; background:#ff5f56; display:inline-block;"></span>
+                        <span style="width:8px; height:8px; border-radius:50%; background:#ffbd2e; display:inline-block;"></span>
+                        <span style="width:8px; height:8px; border-radius:50%; background:#27c93f; display:inline-block;"></span>
+                    `;
+                    pre.appendChild(dots);
+                }
+            }, 100);
+            
+            document.getElementById('preview-modal').style.display = 'block';
+        }
+
+        window.closePreviewModal = () => {
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        // ============ AUTOSAVE SYSTEM ============
+        let autosaveInterval = null;
+        function startAutosave() {
+            if (autosaveInterval) clearInterval(autosaveInterval);
+            autosaveInterval = setInterval(() => {
+                const title = document.getElementById('f-title').value.trim();
+                if (!title) return;
+                
+                const draft = {
+                    id: document.getElementById('f-id').value,
+                    title: title,
+                    category: document.getElementById('f-cat').value,
+                    slug: document.getElementById('f-slug').value,
+                    excerpt: document.getElementById('f-excerpt').value,
+                    tags: document.getElementById('f-tags').value,
+                    content: quill.root.innerHTML,
+                    published: document.getElementById('f-pub').checked,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem('ve_autosave_draft', JSON.stringify(draft));
+                showAutosaveIndicator();
+            }, 20000); // 20 seconds
+        }
+
+        function showAutosaveIndicator() {
+            let indicator = document.getElementById('autosave-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'autosave-indicator';
+                indicator.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    background: rgba(13, 27, 42, 0.95);
+                    border: 1px solid var(--ve-gold);
+                    color: #fff;
+                    padding: 10px 18px;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    z-index: 100000;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    transition: all 0.3s ease;
+                    opacity: 0;
+                    pointer-events: none;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                `;
+                document.body.appendChild(indicator);
+            }
+            indicator.innerHTML = `<i class="fa fa-circle-notch fa-spin" style="color:var(--ve-gold);"></i> Tự động lưu nháp...`;
+            indicator.style.opacity = '1';
+            setTimeout(() => {
+                indicator.style.opacity = '0';
+            }, 2500);
+        }
+
+        window.checkAutosaveOnLoad = () => {
+            const saved = localStorage.getItem('ve_autosave_draft');
+            if (!saved) return;
+            
+            try {
+                const draft = JSON.parse(saved);
+                if (!draft || !draft.title) return;
+                
+                const editorTab = document.getElementById('tab-editor');
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'restore-draft-alert';
+                alertDiv.style.cssText = `
+                    background: rgba(212, 160, 23, 0.1);
+                    border: 1px solid #d4a017;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    margin-bottom: 25px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    box-shadow: 0 4px 15px rgba(212, 160, 23, 0.05);
+                `;
+                alertDiv.innerHTML = `
+                    <div style="font-size:13px; color:#fff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa fa-info-circle" style="color:#d4a017; font-size:16px;"></i>
+                        Phát hiện bản nháp chưa lưu gần đây: <strong>"${draft.title}"</strong> (${new Date(draft.timestamp).toLocaleTimeString()})
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="event.preventDefault(); window.restoreDraft();" style="background:#d4a017; border:none; color:#0d1b2a; font-weight:bold; padding:6px 14px; font-size:12px; border-radius:6px; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.background='#c59015'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='#d4a017'; this.style.transform='scale(1)';" onmousedown="this.style.transform='scale(0.95)';" onmouseup="this.style.transform='scale(1.05)';">Khôi phục</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="event.preventDefault(); window.discardDraft();" style="padding:6px 14px; font-size:12px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#fff; border-radius:6px; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='scale(1)';" onmousedown="this.style.transform='scale(0.95)';" onmouseup="this.style.transform='scale(1.05)';">Bỏ qua</button>
+                    </div>
+                `;
+                
+                const formBox = editorTab.querySelector('.form-box');
+                formBox.insertBefore(alertDiv, formBox.firstChild);
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        window.restoreDraft = () => {
+            const saved = localStorage.getItem('ve_autosave_draft');
+            if (!saved) return;
+
+            // Remove the alert element from DOM immediately at the very beginning
+            const alertDiv = document.getElementById('restore-draft-alert');
+            if (alertDiv) {
+                alertDiv.remove();
+            }
+            localStorage.removeItem('ve_autosave_draft');
+
+            try {
+                const draft = JSON.parse(saved);
+                document.getElementById('f-id').value = draft.id || '';
+                document.getElementById('f-title').value = draft.title || '';
+                document.getElementById('f-cat').value = draft.category || 'AI';
+                document.getElementById('f-slug').value = draft.slug || '';
+                document.getElementById('f-excerpt').value = draft.excerpt || '';
+                document.getElementById('f-tags').value = draft.tags || '';
+                
+                if (quill) {
+                    quill.clipboard.dangerouslyPasteHTML(draft.content || '');
+                } else {
+                    document.getElementById('editor-container').innerHTML = draft.content || '';
+                }
+                
+                const pubEl = document.getElementById('f-pub');
+                if (pubEl) {
+                    pubEl.checked = !!draft.published;
+                }
+                
+                showToast("Bản nháp đã được khôi phục!", "success");
+            } catch(e) {
+                console.error("Lỗi khôi phục bản nháp:", e);
+                showToast("Khôi phục bản nháp thất bại!", "error");
+            }
+        };
+
+        window.discardDraft = () => {
+            const alertDiv = document.getElementById('restore-draft-alert');
+            if (alertDiv) {
+                alertDiv.remove();
+            }
+            localStorage.removeItem('ve_autosave_draft');
+            showToast("Đã hủy bản nháp chưa lưu!", "info");
+        };
+    </script>
+</body>
+
+</html>

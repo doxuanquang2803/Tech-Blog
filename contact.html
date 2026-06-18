@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Get in touch with TechVault — book a free financial consultation today.">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Contact Us — TechVault</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Open Graph / Twitter -->
+    <meta property="og:title" content="Contact TechVault — Get In Touch">
+    <meta property="og:description" content="Book a consultation or send us a message — we'll reply within 24 hours.">
+    <meta property="og:image" content="img/core-img/og-image.jpg">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="img/core-img/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/custom-override.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/notifications.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/content-sync.js"></script>
+</head>
+
+<body>
+    <a class="skip-link" href="#main-content"
+        style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to content</a>
+    <div class="preloader d-flex align-items-center justify-content-center">
+        <div class="lds-ellipsis">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <header class="ve-header" id="ve-sticky">
+        <div class="container-fluid ve-nav-wrap">
+            <div class="ve-logo"><a href="index.html"><span class="ve-logo-icon">V</span><span
+                        class="ve-logo-text">Tech<strong>Vault</strong></span></a></div>
+            <nav class="ve-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="insights.html">Insights</a></li>
+                    <li><a href="ai.html">AI</a></li>
+                    <li><a href="programming.html">Programming</a></li>
+                    <li><a href="cybersecurity.html">Cybersecurity</a></li>
+                    <li><a href="tech-reviews.html">Tech Reviews</a></li>
+                    <li><a href="contact.html" class="active">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="ve-nav-cta"><a href="contact.html" class="ve-cta-btn">Get Started <i
+                        class="fa fa-arrow-right"></i></a></div>
+            <button class="ve-toggler" id="ve-toggle"><span></span><span></span><span></span></button>
+        </div>
+        <div class="ve-mobile-menu" id="ve-mobile-menu">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="insights.html">Insights</a></li>
+                <li><a href="ai.html">AI</a></li>
+                <li><a href="programming.html">Programming</a></li>
+                <li><a href="cybersecurity.html">Cybersecurity</a></li>
+                <li><a href="tech-reviews.html">Tech Reviews</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </header>
+    <section id="contact-hero-banner" class="ve-page-hero" style="background-image:url(img/bg-img/22.jpg);">
+        <div class="ve-page-hero-overlay"></div>
+        <div class="container ve-page-hero-content">
+            <span class="ve-section-tag" id="contact-hero-tag">Get In Touch</span>
+            <h1 id="contact-hero-title">We'd Love to <span>Hear From You</span></h1>
+            <nav aria-label="breadcrumb">
+                <ol class="ve-breadcrumb">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="active">Contact</li>
+                </ol>
+            </nav>
+        </div>
+    </section>
+
+    <section class="ve-contact-cards-section">
+        <div class="container">
+            <div class="ve-contact-cards-grid">
+                <div class="ve-contact-info-card wow fadeInUp" data-wow-delay="100ms">
+                    <div class="ve-ci-icon"><i class="fa fa-map-marker"></i></div>
+                    <h5>Visit Our Office</h5>
+                    <p id="contact-address">42 Harbor View, San Francisco, CA 94105</p>
+                </div>
+                <div class="ve-contact-info-card wow fadeInUp" data-wow-delay="250ms">
+                    <div class="ve-ci-icon"><i class="fa fa-phone"></i></div>
+                    <h5>Call Us</h5>
+                    <p><a href="tel:+18005550199" id="contact-phone" style="color:inherit;text-decoration:none;">+1 800
+                            555 0199</a><br><small>Mon–Fri, 9am – 6pm PST</small></p>
+                </div>
+                <div class="ve-contact-info-card wow fadeInUp" data-wow-delay="400ms">
+                    <div class="ve-ci-icon"><i class="fa fa-envelope"></i></div>
+                    <h5>Email Us</h5>
+                    <p><a href="mailto:hello@techvault.com" id="contact-email"
+                            style="color:inherit;text-decoration:none;">hello@techvault.com</a><br><small>We reply
+                            within 24 hours</small></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ve-section ve-contact-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-lg-7 wow fadeInLeft" data-wow-delay="100ms">
+                    <div class="ve-contact-form-wrap">
+                        <span class="ve-section-tag">Send a Message</span>
+                        <h2>Book a <span>Free Consultation</span></h2>
+                        <p>Fill in the form and one of our advisors will contact you within one business day.</p>
+                        <form class="ve-contact-form" id="contact-form">
+                            <div class="ve-form-row">
+                                <div class="ve-form-group"><label>Full Name</label><input type="text" id="f-name"
+                                        placeholder="Your full name" required></div>
+                                <div class="ve-form-group"><label>Email Address</label><input type="email" id="f-email"
+                                        placeholder="Your email" required></div>
+                            </div>
+                            <div class="ve-form-row">
+                                <div class="ve-form-group"><label>Phone Number</label><input type="tel" id="f-phone"
+                                        placeholder="Your phone"></div>
+                                <div class="ve-form-group"><label>Service Interested In</label>
+                                    <select id="f-service">
+                                        <option value="">Select a service</option>
+                                        <option>Investment Planning</option>
+                                        <option>Wealth Management</option>
+                                        <option>Retirement Planning</option>
+                                        <option>Tax Advisory</option>
+                                        <option>Risk Management</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="ve-form-group"><label>Your Message</label><textarea id="f-message" rows="5"
+                                    placeholder="Tell us about your financial goals..."></textarea></div>
+                            <button type="submit" id="f-submit" class="ve-btn-primary">Send Message <i
+                                    class="fa fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-5 wow fadeInRight" data-wow-delay="200ms">
+                    <div class="ve-contact-aside">
+                        <div class="ve-ca-box">
+                            <h4>Why Clients Choose Us</h4>
+                            <ul class="ve-ca-list" id="contact-why-us">
+                                <li><i class="fa fa-check-circle"></i> <span id="contact-why-1">Free initial consultation</span></li>
+                                <li><i class="fa fa-check-circle"></i> <span id="contact-why-2">Response within 24 hours</span></li>
+                                <li><i class="fa fa-check-circle"></i> <span id="contact-why-3">No sales pressure — ever</span></li>
+                                <li><i class="fa fa-check-circle"></i> <span id="contact-why-4">Certified financial planners</span></li>
+                                <li><i class="fa fa-check-circle"></i> <span id="contact-why-5">Fiduciary standard of care</span></li>
+                            </ul>
+                        </div>
+                        <div class="ve-ca-hours">
+                            <h5><i class="fa fa-clock-o"></i> Office Hours</h5>
+                            <ul>
+                                <li><span>Monday – Friday</span><strong id="contact-hours-wk">9:00 AM – 6:00 PM</strong></li>
+                                <li><span>Saturday</span><strong id="contact-hours-sat">10:00 AM – 2:00 PM</strong></li>
+                                <li><span>Sunday</span><strong id="contact-hours-sun">Closed</strong></li>
+                            </ul>
+                        </div>
+                        <div class="ve-ca-social">
+                            <h5>Connect With Us</h5>
+                            <div class="ve-social" id="contact-social">
+                                <a href="#" id="link-fb"><i class="fa fa-facebook"></i></a>
+                                <a href="#" id="link-tw"><i class="fa fa-twitter"></i></a>
+                                <a href="#" id="link-li"><i class="fa fa-linkedin"></i></a>
+                                <a href="#" id="link-ins"><i class="fa fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="ve-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-lg-4 mb-50">
+                    <div class="ve-footer-brand">
+                        <a href="index.html" class="ve-footer-logo"><span class="ve-logo-icon">V</span><span
+                                class="ve-logo-text">Vault<strong>Edge</strong></span></a>
+                        <p>Empowering individuals and businesses with intelligent financial strategies since 2012.</p>
+                        <div class="ve-social"><a href="#"><i class="fa fa-facebook"></i></a><a href="#"><i
+                                    class="fa fa-twitter"></i></a><a href="#"><i class="fa fa-linkedin"></i></a><a
+                                href="#"><i class="fa fa-instagram"></i></a></div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-2 mb-50">
+                    <h5 class="ve-footer-title">Quick Links</h5>
+                    <ul class="ve-footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="insights.html">Insights</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-3 mb-50">
+                    <h5 class="ve-footer-title">Our Services</h5>
+                    <ul class="ve-footer-links">
+                        <li><a href="#">Investment Planning</a></li>
+                        <li><a href="#">Wealth Management</a></li>
+                        <li><a href="#">Retirement Plans</a></li>
+                        <li><a href="#">Tax Advisory</a></li>
+                        <li><a href="#">Risk Management</a></li>
+                    </ul>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-3 mb-50">
+                    <h5 class="ve-footer-title">Get In Touch</h5>
+                    <ul class="ve-footer-contact">
+                        <li id="contact-address-footer"><i class="fa fa-map-marker"></i> 42 Harbor View, San Francisco,
+                            CA</li>
+                        <li><i class="fa fa-phone"></i> <a href="tel:+18005550199" id="contact-phone-footer"
+                                style="color:inherit;text-decoration:none;">+1 800 555 0199</a></li>
+                        <li><i class="fa fa-envelope"></i> <a href="mailto:hello@techvault.com"
+                                id="contact-email-footer"
+                                style="color:inherit;text-decoration:none;">hello@techvault.com</a></li>
+                        <li><i class="fa fa-clock-o"></i> Mon–Fri, <span id="contact-hours-wk-footer">9:00 AM – 6:00 PM</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="ve-footer-bottom">
+            <div class="container">
+                <div class="ve-footer-bottom-inner">
+                    <p>Copyright &copy;
+                        <script>document.write(new Date().getFullYear());</script> TechVault. All Rights Reserved <a
+                            href="https://github.com/Rabina-Vishwakarma/" class="text-white" target="_blank"
+                            rel="noopener noreferrer">Rabina Vishwakarma</a> • Distributed by <a
+                            href="https://themewagon.com" class="text-white" target="_blank"
+                            rel="noopener noreferrer">ThemeWagon</a>
+                    </p>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="js/jquery/jquery-2.2.4.min.js"></script>
+    <script src="js/bootstrap/popper.min.js"></script>
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <script src="js/plugins/plugins.js"></script>
+    <script src="js/active.js"></script>
+    <script>
+        (function () {
+            const SURL = "https://csjwyvngqynqjbuwtsdv.supabase.co".trim();
+            const SKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzand5dm5ncXlucWpidXd0c2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NTEzMjQsImV4cCI6MjA5NDEyNzMyNH0.21KDagCTN31_ytNhhqSQZ0_mvXzu7QbIEFYgzpgrZDY".trim();
+            const sb = window.supabase.createClient(SURL, SKEY);
+
+            async function loadDynamicContent() {
+                const keys = [
+                    { k: 'contact_hero_banner', id: 'contact-hero-banner', type: 'bg' },
+                    { k: 'contact_hero_tag', id: 'contact-hero-tag', type: 'html' },
+                    { k: 'contact_hero_title', id: 'contact-hero-title', type: 'html' },
+                    { k: 'contact_address', id: 'contact-address', type: 'html' },
+                    { k: 'contact_phone', id: 'contact-phone', type: 'tel' },
+                    { k: 'contact_email', id: 'contact-email', type: 'mailto' },
+                    { k: 'contact_why_us', id: 'contact-why-us', type: 'html' },
+                    { k: 'social_fb', id: 'link-fb', type: 'link' },
+                    { k: 'social_tw', id: 'link-tw', type: 'link' },
+                    { k: 'social_li', id: 'link-li', type: 'link' },
+                    { k: 'social_ins', id: 'link-ins', type: 'link' }
+                ];
+
+                for (const item of keys) {
+                    const { data } = await sb.from('site_content').select('value').eq('key', item.k).maybeSingle();
+                    if (data && data.value) {
+                        const el = document.getElementById(item.id);
+                        if (!el) continue;
+                        if (item.type === 'bg') {
+                            let imageUrl = data.value;
+                            const isLocalOrExternal = imageUrl.startsWith('img/') || imageUrl.startsWith('http');
+                            if (!isLocalOrExternal) {
+                                const { data: img } = sb.storage.from('blog-images').getPublicUrl(data.value);
+                                if (img) imageUrl = img.publicUrl;
+                            }
+                            el.style.backgroundImage = `url('${imageUrl}?t=${Date.now()}')`;
+                        } else if (item.type === 'link') {
+                            el.href = data.value;
+                        } else if (item.type === 'tel') {
+                            el.href = `tel:${data.value.replace(/\s+/g, '')}`;
+                            el.textContent = data.value;
+                        } else if (item.type === 'mailto') {
+                            el.href = `mailto:${data.value}`;
+                            el.textContent = data.value;
+                        } else {
+                            el.innerHTML = data.value;
+                        }
+                    }
+                }
+            }
+
+            // ============ TOAST             // Handled by js/notifications.js
+            function showToastLocal(msg, type) {
+                window.showToast(msg, type);
+            }
+
+            // Handle Form
+            const form = document.getElementById('contact-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('f-submit');
+                    btn.disabled = true;
+                    btn.innerHTML = 'Sending... <i class="fa fa-spinner fa-spin"></i>';
+
+                    const payload = {
+                        full_name: document.getElementById('f-name').value,
+                        email: document.getElementById('f-email').value,
+                        phone: document.getElementById('f-phone').value,
+                        service: document.getElementById('f-service').value,
+                        message: document.getElementById('f-message').value
+                    };
+
+                    const { error } = await sb.from('contact_messages').insert(payload);
+                    if (error) {
+                        window.showToast("Error: " + error.message, "error");
+                        btn.disabled = false;
+                        btn.innerHTML = 'Send Message <i class="fa fa-paper-plane"></i>';
+                    } else {
+                        form.reset();
+                        window.showToast("Message sent successfully!", "success");
+                        btn.disabled = false;
+                        btn.innerHTML = 'Send Message <i class="fa fa-paper-plane"></i>';
+                    }
+                });
+            }
+
+            loadDynamicContent();
+        })();
+    </script>
+</body>
+
+</html>

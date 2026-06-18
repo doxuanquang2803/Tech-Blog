@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="TechWorld - Sharing technology knowledge and insights.">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title id="dynamic-title">Insights — TechWorld</title>
+    <link rel="icon" href="img/core-img/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/custom-override.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/notifications.js"></script>
+
+    <style>
+        /* Premium Technology Blog Editorial Theme */
+        .ve-page-hero {
+            height: 55vh !important;
+            max-height: 580px;
+            min-height: 400px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 160px !important;
+            overflow: hidden;
+        }
+
+        .ve-page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--hero-bg, url('img/bg-img/20.jpg')) !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            /* Premium soft cinematic blur, subtle brightness and contrast tuning */
+            filter: blur(4px) brightness(0.75) contrast(0.95);
+            /* Scale up slightly to prevent white bleeding edges from blur */
+            transform: scale(1.05);
+            z-index: 0;
+            transition: background-image 0.4s ease-in-out;
+        }
+
+        .ve-page-hero-overlay {
+            position: absolute;
+            inset: 0;
+            /* Premium multi-layered cinematic overlay: radial vignette for visual depth + linear bottom gradient for supreme text readability */
+            background:
+                radial-gradient(circle at center, rgba(13, 27, 42, 0.1) 0%, rgba(13, 27, 42, 0.45) 100%),
+                linear-gradient(180deg,
+                    rgba(13, 27, 42, 0) 0%,
+                    rgba(13, 27, 42, 0.35) 50%,
+                    rgba(13, 27, 42, 0.85) 100%) !important;
+            z-index: 1;
+        }
+
+        .ve-article-container-overlap {
+            margin-top: -120px;
+            position: relative;
+            z-index: 100;
+        }
+
+        .ve-article-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 30px 60px rgba(13, 27, 42, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            overflow: hidden;
+            padding: 45px;
+        }
+
+        @media (max-width: 991px) {
+            .ve-article-card {
+                padding: 30px;
+            }
+
+            .sidebar-col {
+                padding-left: 15px !important;
+                margin-top: 40px;
+            }
+
+            .content-col {
+                border-right: none !important;
+                padding-right: 15px !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .ve-article-card {
+                padding: 20px;
+            }
+
+            .ve-page-hero {
+                height: 48vh !important;
+                min-height: 320px;
+                padding-bottom: 120px !important;
+            }
+
+            #hero-title {
+                font-size: 2.2rem !important;
+            }
+        }
+
+        /* Sticky Table of Contents & Sidebar widgets styling */
+        .ve-sidebar {
+            position: sticky;
+            top: 100px;
+        }
+
+        .toc-widget {
+            border-radius: 12px;
+            background: var(--ve-light);
+            border: 1px solid var(--ve-border);
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .toc-widget h5 {
+            font-size: 15px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: var(--ve-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 2px solid var(--ve-gold);
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+
+        /* Related Cards Hover effects */
+        .ve-related-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--ve-border);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ve-related-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(13, 27, 42, 0.1) !important;
+            border-color: rgba(212, 160, 23, 0.3);
+        }
+
+        .ve-related-card:hover h5 a {
+            color: var(--ve-gold) !important;
+        }
+
+        /* Back to top smooth hover */
+        #back-to-top:hover {
+            background: var(--ve-gold2) !important;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(212, 160, 23, 0.4) !important;
+        }
+
+        /* Typography adjustments for modern tech reading */
+        .post-main-content p {
+            font-size: 18px !important;
+            line-height: 1.85 !important;
+            color: #2d3748 !important;
+            margin-bottom: 28px !important;
+            font-family: 'DM Sans', sans-serif !important;
+        }
+
+        .post-main-content h2 {
+            font-size: 28px !important;
+            font-weight: 800 !important;
+            color: var(--ve-dark) !important;
+            margin: 40px 0 16px !important;
+            font-family: 'Nunito', sans-serif !important;
+            letter-spacing: -0.5px;
+        }
+
+        .post-main-content h3 {
+            font-size: 22px !important;
+            font-weight: 800 !important;
+            color: var(--ve-dark) !important;
+            margin: 32px 0 12px !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .post-main-content blockquote {
+            background: var(--ve-light);
+            border-left: 4px solid var(--ve-gold);
+            border-radius: 0 10px 10px 0;
+            padding: 24px 28px;
+            margin: 35px 0;
+        }
+
+        .post-main-content blockquote p {
+            font-size: 20px !important;
+            font-style: italic !important;
+            font-weight: 600 !important;
+            color: var(--ve-dark) !important;
+            line-height: 1.6 !important;
+            margin-bottom: 8px !important;
+        }
+
+        /* Share Icon Styles */
+        .ve-article-share a {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--ve-light);
+            color: var(--ve-text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: 1px solid var(--ve-border);
+        }
+
+        .ve-article-share a:hover {
+            background: var(--ve-gold);
+            color: var(--ve-dark);
+            transform: translateY(-2px);
+            border-color: var(--ve-gold);
+        }
+
+        /* Dynamic Article Lists styling to override global css resets */
+        .post-main-content ul {
+            list-style-type: disc !important;
+            margin: 20px 0 20px 28px !important;
+            padding-left: 0 !important;
+        }
+        .post-main-content ul li {
+            list-style-type: disc !important;
+            font-size: 18px !important;
+            line-height: 1.85 !important;
+            color: #2d3748 !important;
+            margin-bottom: 12px !important;
+            font-family: 'DM Sans', sans-serif !important;
+            display: list-item !important;
+        }
+        .post-main-content ol {
+            list-style-type: decimal !important;
+            margin: 20px 0 20px 28px !important;
+            padding-left: 0 !important;
+        }
+        .post-main-content ol li {
+            list-style-type: decimal !important;
+            font-size: 18px !important;
+            line-height: 1.85 !important;
+            color: #2d3748 !important;
+            margin-bottom: 12px !important;
+            font-family: 'DM Sans', sans-serif !important;
+            display: list-item !important;
+        }
+
+        /* Inline Image Caption Styling */
+        .post-main-content img {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block !important;
+            margin: 28px 0 !important;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(13, 27, 42, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            transition: transform 0.3s ease;
+        }
+        .post-main-content img:hover {
+            transform: scale(1.01);
+        }
+        .post-inline-figure {
+            text-align: left;
+            margin: 35px 0;
+            max-width: 100%;
+        }
+        .post-inline-figure img {
+            margin: 0 !important;
+        }
+        .post-inline-figure figcaption {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 12px;
+            font-style: italic;
+            font-family: 'DM Sans', sans-serif;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Reading Progress Bar -->
+    <div id="reading-progress"
+        style="position: fixed; top: 0; left: 0; height: 4px; background: var(--ve-gold); width: 0%; z-index: 10000; transition: width 0.1s ease;">
+    </div>
+
+    <div class="preloader d-flex align-items-center justify-content-center">
+        <div class="lds-ellipsis">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+    <!-- HEADER navbar -->
+    <header class="ve-header" id="ve-sticky">
+        <div class="container-fluid ve-nav-wrap">
+            <div class="ve-logo"><a href="index.html"><span class="ve-logo-icon">V</span><span
+                        class="ve-logo-text">Vault<strong>Edge</strong></span></a></div>
+            <nav class="ve-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="ai.html">AI</a></li>
+                    <li><a href="programming.html">Programming</a></li>
+                    <li><a href="cybersecurity.html">Cybersecurity</a></li>
+                    <li><a href="tech-reviews.html">Tech Reviews</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="ve-nav-cta"><a href="contact.html" class="ve-cta-btn">Get Started <i
+                        class="fa fa-arrow-right"></i></a></div>
+            <button class="ve-toggler" id="ve-toggle"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+
+    <!-- Cinematic Hero Section -->
+    <section id="main-content" class="ve-page-hero" style="--hero-bg: url('img/bg-img/20.jpg');">
+        <div class="ve-page-hero-overlay"></div>
+        <div class="container ve-page-hero-content" style="z-index: 5;">
+            <span class="ve-insight-cat"
+                style="background: rgba(212,160,23,0.15); color: var(--ve-gold); border: 1px solid rgba(212,160,23,0.3); border-radius: 50px; padding: 6px 16px; font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase; display:inline-block; margin-bottom:20px;">Technology</span>
+            <h1 id="hero-title"
+                style="font-size: 3.2rem; font-weight: 900; line-height: 1.2; color: #fff; margin-bottom: 24px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                Insights & <span>Technology Updates</span></h1>
+            <div class="ve-post-meta-hero d-flex flex-wrap align-items-center gap-3" id="hero-meta"
+                style="color: rgba(255,255,255,0.7); font-size: 14px; display: flex; gap: 20px;">
+                <span><i class="fa fa-user" style="color: var(--ve-gold); margin-right: 5px;"></i> TechWorld Team</span>
+                <span><i class="fa fa-calendar" style="color: var(--ve-gold); margin-right: 5px;"></i> May 12,
+                    2025</span>
+                <span><i class="fa fa-clock-o" style="color: var(--ve-gold); margin-right: 5px;"></i> <span
+                        id="reading-time-badge">5 min read</span></span>
+                <span><i class="fa fa-eye" style="color: var(--ve-gold); margin-right: 5px;"></i> <span
+                        id="views-badge">1.2k views</span></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Container with overlapping editorial card -->
+    <section class="ve-section ve-article-container-overlap" style="padding-top: 0;">
+        <div class="container">
+            <div class="ve-article-card">
+                <div class="row">
+                    <!-- Article Content Column -->
+                    <div class="col-12 col-lg-8 content-col"
+                        style="border-right: 1px solid rgba(226, 232, 240, 0.6); padding-right: 40px;">
+                        <article id="dynamic-post-content">
+                            <!-- Fallback sample content -->
+                            <div id="fallback-content">
+                                <div class="ve-article-featured bg-img"
+                                    style="background-image:url(img/bg-img/10.jpg); border-radius: 12px; margin-bottom: 30px; height: 380px;">
+                                </div>
+                                <div class="ve-article-body" style="padding: 0;">
+                                    <p class="ve-article-lead"
+                                        style="font-size: 20px; font-weight: 500; border-left: 4px solid var(--ve-gold); padding-left: 20px; margin-bottom: 30px; color: var(--ve-dark);">
+                                        Welcome to our insights page. Here we share the latest updates about AI,
+                                        Programming and Cybersecurity.</p>
+                                    <h3>Sample Insight Article</h3>
+                                    <div class="post-main-content">
+                                        <p>This is a sample article content. When you post a new article from the admin
+                                            dashboard and click on it, the real content will replace this text
+                                            automatically.</p>
+                                        <blockquote>
+                                            <p>"Technology is best when it brings people together."</p>
+                                            <cite
+                                                style="font-size: 13px; color: var(--ve-text); font-style: normal; font-weight: bold;">—
+                                                Matt Mullenweg</cite>
+                                        </blockquote>
+                                        <p>We are committed to bringing you the most accurate and up-to-date technology
+                                            reviews and tutorials. Stay tuned for more!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic content loaded from Supabase -->
+                            <div id="dynamic-content-area" style="display:none;">
+                                <div class="ve-article-featured bg-img" id="post-featured-img"
+                                     style="border-radius: 16px; margin-bottom: 30px; height: 380px; box-shadow: 0 15px 30px rgba(13, 27, 42, 0.04); border: 1px solid rgba(0,0,0,0.04);"></div>
+                                <div class="ve-article-body" id="post-body-content" style="padding: 0;">
+                                    <!-- Dynamic content enters here -->
+                                </div>
+                                <div class="ve-article-tags" id="post-tags" style="display: none;">
+                                    <!-- Dynamic tags enter here -->
+                                </div>
+                                <div class="ve-article-share"
+                                    style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--ve-border);">
+                                    <strong
+                                        style="margin-right: 15px; color: var(--ve-dark); font-size: 14px;">Share:</strong>
+                                    <a href="#"
+                                        onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i
+                                            class="fab fa-facebook-f"></i></a>
+                                    <a href="#"
+                                        onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i
+                                            class="fab fa-twitter"></i></a>
+                                    <a href="#"
+                                        onclick="window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i
+                                            class="fab fa-linkedin-in"></i></a>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Comments Section -->
+                        <div class="ve-comments-section"
+                            style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 40px;">
+                            <h4 style="font-weight: 800; margin-bottom: 35px; color: var(--ve-dark);">Comments</h4>
+                            <div id="comments-container">
+                                <p id="no-comments" style="color:#aaa;">Loading comments...</p>
+                            </div>
+
+                            <!-- Comment Form -->
+                            <div class="ve-comment-form-wrap mt-50">
+                                <h5 style="margin-bottom: 20px; font-weight: 800; color: var(--ve-dark);">Leave a
+                                    Comment</h5>
+                                <form id="comment-form">
+                                    <div class="ve-form-group d-flex flex-column" style="margin-bottom: 20px;">
+                                        <input type="text" id="c-name" placeholder="Your Name" required
+                                            style="width: 100%;">
+                                    </div>
+                                    <div class="ve-form-group d-flex flex-column" style="margin-bottom: 20px;">
+                                        <textarea id="c-body" rows="5" placeholder="Your Comment" required
+                                            style="width: 100%;"></textarea>
+                                    </div>
+                                    <button type="submit" class="ve-btn-primary"
+                                        style="border: none; cursor: pointer; align-self: flex-start; padding: 12px 30px;">Post
+                                        Comment</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Column -->
+                    <div class="col-12 col-lg-4 sidebar-col" style="padding-left: 40px;">
+                        <div class="ve-sidebar">
+                            <!-- Dynamic Table of Contents -->
+                            <div class="toc-widget" id="sidebar-toc-widget" style="display: none;">
+                                <h5>Table of Contents</h5>
+                                <ul id="toc-list" style="margin: 0; padding: 0; list-style: none;"></ul>
+                            </div>
+
+                            <div class="ve-sidebar-widget">
+                                <h5 class="ve-sidebar-title">Search</h5>
+                                <div class="ve-search-box">
+                                    <input type="text" placeholder="Search articles..." id="sidebar-search-input">
+                                    <button id="sidebar-search-btn"><i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="ve-sidebar-widget">
+                                <h5 class="ve-sidebar-title">Categories</h5>
+                                <ul class="ve-cat-list">
+                                    <li><a href="insights.html?category=AI">AI</a></li>
+                                    <li><a href="insights.html?category=Programming">Programming</a></li>
+                                    <li><a href="insights.html?category=Cybersecurity">Cybersecurity</a></li>
+                                    <li><a href="insights.html?category=Tech%20Reviews">Tech Reviews</a></li>
+                                </ul>
+                            </div>
+                            <div class="ve-sidebar-widget">
+                                <h5 class="ve-sidebar-title">Recent Posts</h5>
+                                <!-- Dynamic Recent Posts will be loaded here by load-post.js -->
+                            </div>
+                            <div class="ve-sidebar-widget">
+                                <h5 class="ve-sidebar-title">Popular Tags</h5>
+                                <div class="ve-tags">
+                                    <a href="insights.html?tag=AI">AI</a>
+                                    <a href="insights.html?tag=Programming">Programming</a>
+                                    <a href="insights.html?tag=Cybersecurity">Cybersecurity</a>
+                                    <a href="insights.html?tag=AI%20Tools">AI Tools</a>
+                                    <a href="insights.html?tag=Next.js">Next.js</a>
+                                    <a href="insights.html?tag=React">React</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Posts Section -->
+    <section class="ve-related-posts-section"
+        style="padding: 80px 0; background: var(--ve-light); border-top: 1px solid var(--ve-border);">
+        <div class="container">
+            <h3 style="font-weight: 800; margin-bottom: 40px; text-align: center; color: var(--ve-dark);">You Might Also
+                Like</h3>
+            <div class="row" id="related-posts-container">
+                <!-- 3 related articles cards loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="ve-footer">
+        <div class="container">
+            <div class="row" style="padding: 60px 0 30px;">
+                <div class="col-12 col-md-4 mb-4">
+                    <div class="ve-logo" style="margin-bottom: 20px;"><a href="index.html"><span
+                                class="ve-logo-icon">V</span><span
+                                class="ve-logo-text">Vault<strong>Edge</strong></span></a></div>
+                    <p style="color: rgba(255,255,255,0.6); line-height: 1.6; font-size: 14px;">Next-generation
+                        cybersecurity and technology intelligence platform. Protecting your digital future.</p>
+                </div>
+                <div class="col-12 col-md-4 mb-4" style="padding-left: 40px;">
+                    <h5 style="color: #fff; font-weight: 800; margin-bottom: 20px;">Explore</h5>
+                    <ul
+                        style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <li><a href="index.html"
+                                style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px;">Home</a>
+                        </li>
+                        <li><a href="ai.html"
+                                style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px;">AI</a>
+                        </li>
+                        <li><a href="programming.html"
+                                style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px;">Programming</a>
+                        </li>
+                        <li><a href="cybersecurity.html"
+                                style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px;">Cybersecurity</a>
+                        </li>
+                        <li><a href="tech-reviews.html"
+                                style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px;">Tech
+                                Reviews</a></li>
+                        <li><a href="contact.html"
+                                style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px;">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-12 col-md-4 mb-4">
+                    <h5 style="color: #fff; font-weight: 800; margin-bottom: 20px;">Get In Touch</h5>
+                    <ul class="ve-footer-contact" style="list-style: none; padding: 0; margin: 0;">
+                        <li id="contact-address-footer"
+                            style="color: rgba(255,255,255,0.7); margin-bottom: 10px; font-size: 14px;"><i
+                                class="fa fa-map-marker" style="color: var(--ve-gold); margin-right: 8px;"></i> 42
+                            Harbor View, San Francisco, CA</li>
+                        <li style="color: rgba(255,255,255,0.7); margin-bottom: 10px; font-size: 14px;"><i
+                                class="fa fa-phone" style="color: var(--ve-gold); margin-right: 8px;"></i> <a
+                                href="tel:+18005550199" id="contact-phone-footer"
+                                style="color:inherit; text-decoration:none;">+1 800 555 0199</a></li>
+                        <li style="color: rgba(255,255,255,0.7); margin-bottom: 10px; font-size: 14px;"><i
+                                class="fa fa-envelope" style="color: var(--ve-gold); margin-right: 8px;"></i> <a
+                                href="mailto:hello@TechWorld.com" id="contact-email-footer"
+                                style="color:inherit; text-decoration:none;">hello@TechWorld.com</a></li>
+                        <li style="color: rgba(255,255,255,0.7); margin-bottom: 10px; font-size: 14px;"><i
+                                class="fa fa-clock-o" style="color: var(--ve-gold); margin-right: 8px;"></i> Mon–Fri,
+                            <span id="contact-hours-wk-footer">9:00 AM – 6:00 PM</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="ve-footer-bottom-inner"
+                style="border-top: 1px solid rgba(255,255,255,0.1); padding: 20px 0; text-align: center;">
+                <p style="color: rgba(255,255,255,0.5); font-size: 13px; margin: 0;">Copyright &copy;
+                    <script>document.write(new Date().getFullYear());</script> TechWorld.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to top floating button -->
+    <button id="back-to-top"
+        style="position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: var(--ve-gold); color: var(--ve-dark); border: none; box-shadow: 0 10px 25px rgba(212,160,23,0.3); cursor: pointer; display: none; z-index: 1000; align-items: center; justify-content: center; font-size: 20px; transition: all 0.3s ease;">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <script src="js/jquery/jquery-2.2.4.min.js"></script>
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <script src="js/active.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/load-post.js"></script>
+
+    <!-- Tech Editorial Enhancements Script -->
+    <script>
+        const STORAGE_BUCKET = "blog-images";
+        const SURL = "https://csjwyvngqynqjbuwtsdv.supabase.co".trim();
+        const SKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzand5dm5ncXlucWpidXd0c2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NTEzMjQsImV4cCI6MjA5NDEyNzMyNH0.21KDagCTN31_ytNhhqSQZ0_mvXzu7QbIEFYgzpgrZDY".trim();
+        const supabaseClient = window.supabase.createClient(SURL, SKEY);
+
+        // 1. Reading Progress Bar & Back to top button
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('reading-progress').style.width = scrolled + '%';
+
+            const backBtn = document.getElementById('back-to-top');
+            if (winScroll > 400) {
+                backBtn.style.display = 'flex';
+            } else {
+                backBtn.style.display = 'none';
+            }
+        });
+
+        document.getElementById('back-to-top').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 2. Sidebar Search
+        document.addEventListener('DOMContentLoaded', () => {
+            const sInput = document.getElementById('sidebar-search-input');
+            const sBtn = document.getElementById('sidebar-search-btn');
+            if (sInput && sBtn) {
+                const handleSearch = () => {
+                    const val = sInput.value.trim();
+                    if (val) window.location.href = `insights.html?s=${encodeURIComponent(val)}`;
+                };
+                sBtn.addEventListener('click', handleSearch);
+                sInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleSearch();
+                });
+            }
+
+            // If loading fallback sample post directly
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('id');
+            const postSlug = urlParams.get('slug');
+            if (!postId && !postSlug) {
+                setTimeout(() => {
+                    formatCodeBlocks();
+                    generateTOC();
+                    loadRelatedPosts('Technology', null);
+                }, 200);
+            }
+        });
+
+        // 3. Format Dynamic Code Blocks with Copy button and beautiful headers
+        function formatCodeBlocks() {
+            const body = document.getElementById('post-body-content') || document.querySelector('.post-main-content');
+            if (!body) return;
+            const preElements = body.getElementsByTagName('pre');
+            for (let pre of preElements) {
+                pre.style.position = 'relative';
+                pre.style.background = '#0d1b2a';
+                pre.style.color = '#f8f9fa';
+                pre.style.padding = '40px 20px 20px';
+                pre.style.borderRadius = '12px';
+                pre.style.overflowX = 'auto';
+                pre.style.margin = '35px 0';
+                pre.style.boxShadow = '0 15px 35px rgba(13, 27, 42, 0.15)';
+                pre.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+
+                // Add code block decorative header
+                const codeHeader = document.createElement('div');
+                codeHeader.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 30px;
+                    background: rgba(255,255,255,0.05);
+                    border-bottom: 1px solid rgba(255,255,255,0.08);
+                    display: flex;
+                    align-items: center;
+                    padding: 0 15px;
+                    gap: 6px;
+                `;
+                codeHeader.innerHTML = `
+                    <span style="width:10px; height:10px; border-radius:50%; background:#ff5f56; display:inline-block;"></span>
+                    <span style="width:10px; height:10px; border-radius:50%; background:#ffbd2e; display:inline-block;"></span>
+                    <span style="width:10px; height:10px; border-radius:50%; background:#27c93f; display:inline-block;"></span>
+                `;
+                pre.appendChild(codeHeader);
+
+                // Copy button
+                const copyBtn = document.createElement('button');
+                copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+                copyBtn.className = 'copy-code-btn';
+                copyBtn.style.cssText = `
+                    position: absolute;
+                    top: 4px;
+                    right: 12px;
+                    background: rgba(255,255,255,0.08);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    color: rgba(255,255,255,0.8);
+                    padding: 3px 10px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-family: inherit;
+                    z-index: 10;
+                `;
+                copyBtn.onmouseover = () => {
+                    copyBtn.style.background = 'var(--ve-gold)';
+                    copyBtn.style.color = 'var(--ve-dark)';
+                    copyBtn.style.borderColor = 'var(--ve-gold)';
+                };
+                copyBtn.onmouseout = () => {
+                    copyBtn.style.background = 'rgba(255,255,255,0.08)';
+                    copyBtn.style.color = 'rgba(255,255,255,0.8)';
+                    copyBtn.style.borderColor = 'rgba(255,255,255,0.15)';
+                };
+                copyBtn.onclick = () => {
+                    const codeText = pre.innerText.replace('Copy', '').trim();
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+                        }, 2000);
+                    });
+                };
+                pre.appendChild(copyBtn);
+            }
+        }
+
+        // 4. Generate Interactive Table of Contents dynamically based on Headings
+        function generateTOC() {
+            const body = document.getElementById('post-body-content') || document.querySelector('.post-main-content');
+            const tocContainer = document.getElementById('sidebar-toc-widget');
+            const tocList = document.getElementById('toc-list');
+            if (!body || !tocContainer || !tocList) return;
+
+            const headings = body.querySelectorAll('h2, h3');
+            if (headings.length === 0) {
+                tocContainer.style.display = 'none';
+                return;
+            }
+
+            tocContainer.style.display = 'block';
+            tocList.innerHTML = '';
+
+            headings.forEach((heading, index) => {
+                const id = 'heading-' + index;
+                heading.id = id;
+
+                const li = document.createElement('li');
+                li.style.marginBottom = '12px';
+                if (heading.tagName === 'H3') {
+                    li.style.paddingLeft = '15px';
+                }
+
+                const a = document.createElement('a');
+                a.href = '#' + id;
+                a.textContent = heading.textContent;
+                a.style.cssText = `
+                    color: var(--ve-text);
+                    font-size: 13px;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    display: inline-block;
+                    border-left: 2px solid transparent;
+                    padding-left: 8px;
+                    line-height: 1.4;
+                `;
+
+                // Track scrolling to activate current heading
+                a.onmouseover = () => {
+                    a.style.color = 'var(--ve-gold)';
+                    a.style.borderLeftColor = 'var(--ve-gold)';
+                };
+                a.onmouseout = () => {
+                    a.style.color = 'var(--ve-text)';
+                    a.style.borderLeftColor = 'transparent';
+                };
+                li.appendChild(a);
+                tocList.appendChild(li);
+            });
+        }
+
+        // 5. Load 3 Dynamic Related Posts
+        async function loadRelatedPosts(category, currentId) {
+            const container = document.getElementById('related-posts-container');
+            if (!container) return;
+            try {
+                let query = supabaseClient.from('posts').select('*').eq('published', true);
+                if (currentId) {
+                    query = query.neq('id', currentId);
+                }
+                if (category) {
+                    query = query.eq('category', category);
+                }
+
+                let { data: posts, error } = await query.limit(3);
+                if (error || !posts || posts.length === 0) {
+                    let fallbackQuery = supabaseClient.from('posts').select('*').eq('published', true);
+                    if (currentId) {
+                        fallbackQuery = fallbackQuery.neq('id', currentId);
+                    }
+                    const fallback = await fallbackQuery.limit(3);
+                    posts = fallback.data;
+                }
+
+                if (posts && posts.length > 0) {
+                    container.innerHTML = posts.map(p => {
+                        let imgUrl = "img/bg-img/10.jpg";
+                        if (p.image_key) {
+                            imgUrl = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(p.image_key).data.publicUrl;
+                        } else if (p.image) {
+                            imgUrl = p.image;
+                        }
+                        const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const link = p.slug ? `single-post.html?slug=${p.slug}` : `single-post.html?id=${p.id}`;
+                        return `
+                            <div class="col-12 col-md-4 mb-4">
+                                <div class="ve-related-card">
+                                    <div style="background-image: url('${imgUrl}'); height: 200px; background-size: cover; background-position: center; position:relative;">
+                                        <span style="position:absolute; top:15px; left:15px; background:var(--ve-gold); color:var(--ve-dark); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase;">${p.category || 'Tech'}</span>
+                                    </div>
+                                    <div style="padding: 24px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; height: 100%;">
+                                        <div>
+                                            <h5 style="font-weight:800; font-size:17px; line-height:1.4; margin-bottom:12px; color:var(--ve-dark);"><a href="${link}" style="color:inherit; text-decoration:none; transition: color 0.2s;">${p.title}</a></h5>
+                                            <p style="font-size:14px; color:var(--ve-text); line-height:1.5; margin-bottom:20px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.excerpt || ''}</p>
+                                        </div>
+                                        <div style="font-size:12px; color:#aaa; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f5f5f5; padding-top:15px; margin-top: 15px;">
+                                            <span><i class="fa fa-calendar"></i> ${date}</span>
+                                            <span><i class="fa fa-clock-o"></i> 5 min read</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align:center; color:#999; width:100%;">No related articles found.</p>';
+                }
+            } catch (e) {
+                console.error("Related Posts Load Error:", e);
+                container.innerHTML = '<p style="text-align:center; color:#999; width:100%;">Failed to load related articles.</p>';
+            }
+        }
+
+        // 6. Handle Custom Event emitted when Supabase post finishes rendering
+        document.addEventListener('post-loaded', (e) => {
+            const post = e.detail;
+
+            // Calculate dynamic reading time based on content length
+            const wordCount = (post.content || '').split(/\s+/).length;
+            const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+            const rTimeBadge = document.getElementById('reading-time-badge');
+            if (rTimeBadge) rTimeBadge.textContent = `${readingTime} min read`;
+
+            // Mock dynamic views counts for premium editorial looks
+            const viewsBadge = document.getElementById('views-badge');
+            if (viewsBadge) {
+                const mockViews = Math.floor(Math.random() * 850) + 150;
+                viewsBadge.textContent = `${mockViews} views`;
+            }
+
+            // Sync Header Category & Title Background Hero
+            const hCat = document.querySelector('.ve-page-hero .ve-insight-cat');
+            if (hCat) hCat.textContent = post.category || "Technology";
+
+            // Format dynamic blocks
+            setTimeout(() => {
+                formatCodeBlocks();
+                generateTOC();
+            }, 100);
+
+            // Fetch related posts
+            loadRelatedPosts(post.category, post.id);
+        });
+    </script>
+</body>
+
+</html>
