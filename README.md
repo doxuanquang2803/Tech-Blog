@@ -43,15 +43,18 @@ Hệ thống Blog công nghệ hiện đại và Trình quản trị nội dung 
 5. Nhấn **Run** để khởi chạy script. Lệnh này sẽ:
    - Tạo các bảng: `posts`, `comments`, `site_content`, và `contact_messages`.
    - Vô hiệu hóa bảo mật Row Level Security (RLS) để cho phép frontend tương tác trực tiếp.
+   - Tạo tự động Storage bucket tên là `blog-images` và thiết lập các chính sách bảo mật (Storage Policies).
    - Thêm dữ liệu tĩnh mặc định vào bảng `site_content`.
    - Kích hoạt cơ chế **Supabase Realtime** cho bảng `contact_messages` và `comments`.
 
 ### Bước 2: Tạo Bucket Lưu Trữ Ảnh (Storage)
+*Lưu ý: Đoạn mã SQL ở Bước 1 đã tự động khởi tạo bucket `blog-images` cho bạn. Bạn không cần làm thủ công bước này nữa.*
+
+Trong trường hợp bạn muốn kiểm tra hoặc cần cấu hình thủ công:
 1. Đi tới mục **Storage** trên giao diện điều khiển Supabase Dashboard.
-2. Nhấp vào **New bucket** để tạo một phân vùng lưu trữ mới.
-3. Đặt tên bucket bắt buộc là: `blog-images`.
-4. Bật tùy chọn **Public bucket** (Cho phép mọi người xem ảnh không cần token ký tên).
-5. Lưu lại cấu hình.
+2. Nhấp vào **New bucket** để tạo một phân vùng lưu trữ mới với tên bắt buộc là: `blog-images`.
+3. Bật tùy chọn **Public bucket** (Cho phép truy cập công khai mà không cần ký token) và lưu lại.
+
 
 ### Bước 3: Liên Kết Code Dự Án Với Supabase Của Bạn
 Tìm và chỉnh sửa các file mã nguồn sau để thay cấu hình API Key:

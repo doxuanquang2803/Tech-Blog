@@ -61,10 +61,14 @@ VALUES
   ('contact_address', '42 Harbor View, San Francisco, CA')
 ON CONFLICT (key) DO NOTHING;
 
--- 6. Tạo Bucket cho ảnh (Nếu bạn chưa tạo thủ công)
--- Lưu ý: Bạn nên vào mục Storage trên Dashboard để tạo bucket tên 'blog-images' và để chế độ Public.
+-- 6. Tạo Bucket cho ảnh (Tạo tự động)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('blog-images', 'blog-images', true)
+ON CONFLICT (id) DO NOTHING;
+
 -- Lệnh này sẽ tắt hàng rào bảo mật để bạn có thể lưu bài thoải mái
 ALTER TABLE posts DISABLE ROW LEVEL SECURITY;
+
 
 
 -- 1. Cho phép mọi người xem ảnh (SELECT)
